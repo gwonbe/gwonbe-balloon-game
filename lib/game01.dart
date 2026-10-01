@@ -10,32 +10,50 @@ class Game01Screen extends StatefulWidget {
   State<Game01Screen> createState() => _Game01ScreenState();
 }
 
+/// 단계별 설정: 제한 시간, 목표 풍선 개수, 풍선 속도/크기 범위, 스폰 밀도
+class LevelConfig {
   final int level;
   final int durationSeconds;
   final int requiredBalloons;
+  final double minSpeed; // px/sec
+  final double maxSpeed; // px/sec
+  final double minSize;
+  final double maxSize;
+  final double spawnMultiplier; // 목표 개수 대비 실제 화면에 나오는 풍선 배율
 
   const LevelConfig({
     required this.level,
     required this.durationSeconds,
     required this.requiredBalloons,
+    required this.minSpeed,
+    required this.maxSpeed,
+    required this.minSize,
+    required this.maxSize,
+    required this.spawnMultiplier,
   });
 }
 
-/// 9레벨: 60초 -> 20초 (5초씩 감소), 목표 풍선 개수는 15개부터 3개씩 증가
+/// 9단계: 시간 60->20초(5초씩 감소), 목표 개수 16->48개(4개씩 증가),
+/// 단계가 오를수록 풍선은 더 빠르고/작아지고, 화면에 더 많이 나옵니다.
 final List<LevelConfig> kLevels = List.generate(9, (i) {
   return LevelConfig(
     level: i + 1,
     durationSeconds: 60 - i * 5,
-    requiredBalloons: 15 + i * 3,
+    requiredBalloons: 16 + i * 4,
+    minSpeed: (90 + i * 15).toDouble(),
+    maxSpeed: (160 + i * 20).toDouble(),
+    minSize: (50 - i * 3).clamp(26, 100).toDouble(),
+    maxSize: (85 - i * 5).clamp(40, 120).toDouble(),
+    spawnMultiplier: 1.3 + i * 0.1,
   );
 });
 
 enum _GameStatus {
   ready, // 시작 전
   playing, // 진행 중
-  levelCleared, // 해당 레벨 목표 달성
+  levelCleared, // 해당 단계 목표 달성
   levelFailed, // 시간 초과로 실패
-  allCleared, // 마지막 레벨까지 모두 클리어
+  allCleared, // 마지막 단계까지 모두 클리어
 }
 
 class Balloon {
@@ -75,17 +93,16 @@ class _Game01ScreenState extends State<Game01Screen> {
   Timer? _spawnTimer; // 목표 개수만큼 풍선을 시간 내에 골고루 생성
   Timer? _frameTimer; // 풍선 위치 업데이트(약 60fps)
 
-  int _levelIndex = 0; // 0-based (0 -> 레벨 1)
+  int _levelIndex = 0; // 0-based (0 -> 단계 1)
   LevelConfig get _currentLevel => kLevels[_levelIndex];
 
   // 목표 개수보다 실제로 화면에 더 많은 풍선이 나오도록 하는 배율
   // (클리어 조건인 목표 개수는 그대로 유지, 화면만 더 풍성하게)
-  static const double _spawnMultiplier = 1.5;
   int get _totalSpawnCount =>
-      (_currentLevel.requiredBalloons * _spawnMultiplier).round();
+      (_currentLevel.requiredBalloons * _currentLevel.spawnMultiplier).round();
 
-  int _score = 0; // 이번 레벨에서 터뜨린 풍선 수
-  int _spawnedCount = 0; // 이번 레벨에서 이미 생성된 풍선 수
+  int _score = 0; // 이번 단계에서 터뜨린 풍선 수
+  int _spawnedCount = 0; // 이번 단계에서 이미 생성된 풍선 수
   int _timeLeft = 0;
 
   _GameStatus _status = _GameStatus.ready;
@@ -126,7 +143,7 @@ class _Game01ScreenState extends State<Game01Screen> {
     final int intervalMs =
     ((config.durationSeconds * 1000) / _totalSpawnCount).round();
     _spawnTimer = Timer.periodic(
-      Duration(milliseconds: intervalMs.clamp(150, 5000)),
+      Duration(milliseconds: intervalMs.clamp(100, 5000)),
           (timer) {
         if (_status != _GameStatus.playing) return;
         if (_spawnedCount >= _totalSpawnCount) {
@@ -158,9 +175,12 @@ class _Game01ScreenState extends State<Game01Screen> {
 
   void _spawnBalloon() {
     if (_screenSize == Size.zero) return;
-    final double size = 50 + _random.nextDouble() * 40; // 50~90
+    final LevelConfig config = _currentLevel;
+    final double size =
+        config.minSize + _random.nextDouble() * (config.maxSize - config.minSize);
     final double x = _random.nextDouble(); // 0.0~1.0
-    final double speed = 60 + _random.nextDouble() * 90; // px/sec
+    final double speed = config.minSpeed +
+        _random.nextDouble() * (config.maxSpeed - config.minSpeed);
     setState(() {
       _spawnedCount++;
       _balloons.add(
@@ -192,7 +212,7 @@ class _Game01ScreenState extends State<Game01Screen> {
       _score++;
     });
 
-    // 목표 개수를 다 터뜨렸다면 즉시 레벨 클리어 처리
+    // 목표 개수를 다 터뜨렸다면 즉시 단계 클리어 처리
     if (_score >= _currentLevel.requiredBalloons) {
       _cancelAllTimers();
       setState(() {
@@ -418,7 +438,8 @@ class _Game01ScreenState extends State<Game01Screen> {
               const SizedBox(height: 12),
               Text(
                 '총 ${kLevels.length}단계!\n'
-                '레벨 ${first.level}: ${first.durationSeconds}초 안에 풍선 ${first.requiredBalloons}개를 터뜨리세요!\n',
+                    '단계 ${first.level}: ${first.durationSeconds}초 안에 풍선 ${first.requiredBalloons}개를 터뜨리세요!\n'
+                    '단계가 올라갈수록 풍선이 더 빠르고 작아져요!',
                 style: const TextStyle(fontSize: 16, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
@@ -515,13 +536,13 @@ class _Game01ScreenState extends State<Game01Screen> {
   Widget _buildLevelClearOverlay() {
     final LevelConfig cleared = kLevels[_levelIndex];
     return _buildDialogCard(
-      title: '레벨 ${cleared.level} 클리어! 🎉',
+      title: '${cleared.level}단계 클리어! 🎉',
       message:
       '풍선 ${cleared.requiredBalloons}개를 모두 터뜨렸어요!\n'
-      '다음 레벨에 도전할까요?',
+          '다음 단계에 도전할까요?',
       titleColor: Colors.green,
       onPrimaryAction: _goToNextLevel,
-      primaryLabel: '다음 레벨',
+      primaryLabel: '다음 단계',
       primaryColor: Colors.blue,
     );
   }
@@ -529,7 +550,7 @@ class _Game01ScreenState extends State<Game01Screen> {
   Widget _buildLevelFailedOverlay() {
     return _buildDialogCard(
       title: '시간 종료! ⏰',
-      message: '아쉬워요!\n같은 레벨부터 다시 도전해 보세요!',
+      message: '아쉬워요!\n같은 단계부터 다시 도전해 보세요!',
       titleColor: Colors.redAccent,
       onPrimaryAction: _retryLevel,
       primaryLabel: '다시 시도',
@@ -540,7 +561,7 @@ class _Game01ScreenState extends State<Game01Screen> {
   Widget _buildAllClearedOverlay() {
     return _buildDialogCard(
       title: '전체 클리어! 🏆',
-      message: '${kLevels.length}개 레벨을 모두 완료했어요!\n정말 대단해요!',
+      message: '${kLevels.length}개 단계을 모두 완료했어요!\n정말 대단해요!',
       titleColor: Colors.deepOrange,
       onPrimaryAction: _restartFromBeginning,
       primaryLabel: '처음부터',
