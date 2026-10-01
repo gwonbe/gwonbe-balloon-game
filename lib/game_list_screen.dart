@@ -1,8 +1,7 @@
+import 'package:balloon_game/game01.dart';
+import 'package:balloon_game/game02.dart';
 import 'package:flutter/material.dart';
-import 'game01.dart';
 
-/// 게임 목록에 들어갈 항목 하나를 표현하는 모델.
-/// 새 게임을 추가하려면 아래 _games 리스트에 항목만 추가하면 됩니다.
 class GameItem {
   final String title;
   final IconData icon;
@@ -24,7 +23,11 @@ class GameListScreen extends StatelessWidget {
       icon: Icons.bubble_chart,
       builder: (context) => const Game01Screen(),
     ),
-    // 예) GameItem(title: '두번째 게임', icon: Icons.videogame_asset, builder: (context) => const Game02Screen()),
+    GameItem(
+      title: '계산하기',
+      icon: Icons.calculate,
+      builder: (context) => const Game02Screen(),
+    ),
   ];
 
   @override
