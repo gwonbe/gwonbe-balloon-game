@@ -51,6 +51,7 @@ final List<LevelConfig> kLevels = List.generate(9, (i) {
 enum _GameStatus {
   ready, // 시작 전
   playing, // 진행 중
+  paused, // 일시정지
   levelCleared, // 해당 단계 목표 달성
   levelFailed, // 시간 초과로 실패
   allCleared, // 마지막 단계까지 모두 클리어
@@ -128,6 +129,14 @@ class _Game01ScreenState extends State<Game01Screen> {
       _balloons.clear();
     });
 
+    _startTimers();
+  }
+
+  /// 현재 _score / _timeLeft / _spawnedCount / _balloons 상태를 그대로 두고
+  /// 세 개의 타이머만 (다시) 시작한다. 레벨 시작 및 일시정지 후 재개에 공용으로 사용.
+  void _startTimers() {
+    final LevelConfig config = _currentLevel;
+
     // 남은 시간 카운트다운
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_status != _GameStatus.playing) return;
@@ -158,6 +167,22 @@ class _Game01ScreenState extends State<Game01Screen> {
       if (_status != _GameStatus.playing) return;
       _updateBalloons();
     });
+  }
+
+  void _pauseGame() {
+    if (_status != _GameStatus.playing) return;
+    _cancelAllTimers();
+    setState(() {
+      _status = _GameStatus.paused;
+    });
+  }
+
+  void _resumeGame() {
+    if (_status != _GameStatus.paused) return;
+    setState(() {
+      _status = _GameStatus.playing;
+    });
+    _startTimers();
   }
 
   void _onTimeUp() {
@@ -264,6 +289,7 @@ class _Game01ScreenState extends State<Game01Screen> {
                 ..._balloons.map(_buildBalloon),
                 _buildTopBar(),
                 if (_status == _GameStatus.ready) _buildStartOverlay(),
+                if (_status == _GameStatus.paused) _buildPausedOverlay(),
                 if (_status == _GameStatus.levelCleared)
                   _buildLevelClearOverlay(),
                 if (_status == _GameStatus.levelFailed)
@@ -297,39 +323,48 @@ class _Game01ScreenState extends State<Game01Screen> {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 _circleButton(
-                  Icons.arrow_back,
-                      () => Navigator.of(context).maybePop(),
+                  Icons.arrow_back, () => Navigator.of(context).maybePop(),
                 ),
-                Row(
-                  children: [
-                    _infoChip(
-                      icon: Icons.flag,
-                      value: '${config.level}',
-                      unit: '/${kLevels.length}',
-                      width: 90,
-                    ),
-                    const SizedBox(width: 8),
-                    _infoChip(
-                      icon: Icons.star,
-                      value: '$_score',
-                      unit: '/${config.requiredBalloons}',
-                      width: 95,
-                    ),
-                    const SizedBox(width: 8),
-                    _infoChip(
-                      icon: Icons.timer,
-                      value: '$_timeLeft',
-                      unit: '초',
-                      width: 90,
-                    ),
-                  ],
+                if (_status == _GameStatus.playing || _status == _GameStatus.paused) ...[
+                  const SizedBox(height: 8),
+                  _circleButton(
+                    _status == _GameStatus.paused ? Icons.play_arrow : Icons.pause,
+                    _status == _GameStatus.paused ? _resumeGame : _pauseGame,
+                  ),
+                ],
+              ],
+            ),
+
+            // 오른쪽: 정보 칩 3개
+            Row(
+              children: [
+                _infoChip(
+                  icon: Icons.flag,
+                  value: '${config.level}',
+                  unit: '/${kLevels.length}',
+                  width: 90,
+                ),
+                const SizedBox(width: 8),
+                _infoChip(
+                  icon: Icons.star,
+                  value: '$_score',
+                  unit: '/${config.requiredBalloons}',
+                  width: 95,
+                ),
+                const SizedBox(width: 8),
+                _infoChip(
+                  icon: Icons.timer,
+                  value: '$_timeLeft',
+                  unit: '초',
+                  width: 90,
                 ),
               ],
             ),
@@ -426,15 +461,6 @@ class _Game01ScreenState extends State<Game01Screen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                '🎈 풍선 터뜨리기 🎈',
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
               const SizedBox(height: 12),
               Text(
                 '총 ${kLevels.length}단계!\n'
@@ -533,10 +559,22 @@ class _Game01ScreenState extends State<Game01Screen> {
     );
   }
 
+  Widget _buildPausedOverlay() {
+    return _buildDialogCard(
+      title: '일시정지 ⏸️',
+      message:
+      '이어서 진행하세요!',
+      titleColor: Colors.blueGrey,
+      onPrimaryAction: _resumeGame,
+      primaryLabel: '다시 시작',
+      primaryColor: Colors.blue,
+    );
+  }
+
   Widget _buildLevelClearOverlay() {
     final LevelConfig cleared = kLevels[_levelIndex];
     return _buildDialogCard(
-      title: '${cleared.level}단계 클리어! 🎉',
+      title: '단계 ${cleared.level} 클리어! 🎉',
       message:
       '풍선 ${cleared.requiredBalloons}개를 모두 터뜨렸어요!\n'
           '다음 단계에 도전할까요?',
