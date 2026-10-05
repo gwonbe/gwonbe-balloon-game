@@ -14,6 +14,7 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   flutter_launcher_icons: ^0.14.4
+  audioplayers: ^6.7.1
 
 dev_dependencies:
   flutter_test:
@@ -22,6 +23,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/2026_012_0-82.mp3 # game bgm
+    - assets/2026_003_0-80.mp3 # home bgm
 
 flutter_launcher_icons:
   android: true

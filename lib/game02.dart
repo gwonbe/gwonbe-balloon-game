@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:balloon_game/utils/app_bgm.dart';
+import 'package:balloon_game/utils/bgm_player.dart';
 import 'package:flutter/material.dart';
 
 class Game02Screen extends StatefulWidget {
@@ -18,6 +20,7 @@ enum _GameStatus {
 class _Game02ScreenState extends State<Game02Screen> {
   static const int gameDuration = 99; // 제한 시간(초)
   static const int gridCount = 9; // 3x3
+  final BgmPlayer _bgm = BgmPlayer();
 
   static const List<Color> balloonColorPalette = [
     Colors.red,
@@ -163,6 +166,9 @@ class _Game02ScreenState extends State<Game02Screen> {
     });
     _generateGrid();
 
+    AppBgm.home.stop();
+    _bgm.start(); // 이미 재생 중이면 무시되므로 '다시 시작'해도 음악이 끊기지 않음
+
     _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_status != _GameStatus.playing) return;
       setState(() {
@@ -216,6 +222,8 @@ class _Game02ScreenState extends State<Game02Screen> {
   @override
   void dispose() {
     _cancelAllTimers();
+    _bgm.dispose();
+    AppBgm.home.start();
     super.dispose();
   }
 

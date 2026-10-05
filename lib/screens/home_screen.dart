@@ -1,8 +1,20 @@
+import 'package:balloon_game/game_list_screen.dart';
+import 'package:balloon_game/utils/app_bgm.dart';
 import 'package:flutter/material.dart';
-import '../game_list_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    AppBgm.home.start(); // 이미 재생 중이면 무시됨
+  }
 
   @override
   Widget build(BuildContext context) {

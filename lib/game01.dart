@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:balloon_game/utils/app_bgm.dart';
+import 'package:balloon_game/utils/bgm_player.dart';
 import 'package:flutter/material.dart';
 
 /// 게임 01: 풍선 터뜨리기
@@ -97,6 +99,8 @@ class _Game01ScreenState extends State<Game01Screen> {
   int _levelIndex = 0; // 0-based (0 -> 단계 1)
   LevelConfig get _currentLevel => kLevels[_levelIndex];
 
+  final BgmPlayer _bgm = BgmPlayer();
+
   // 목표 개수보다 실제로 화면에 더 많은 풍선이 나오도록 하는 배율
   // (클리어 조건인 목표 개수는 그대로 유지, 화면만 더 풍성하게)
   int get _totalSpawnCount =>
@@ -129,6 +133,8 @@ class _Game01ScreenState extends State<Game01Screen> {
       _balloons.clear();
     });
 
+    AppBgm.home.stop();
+    _bgm.start(); // 이미 재생 중이면 무시되므로 단계가 넘어가도 음악이 끊기지 않음
     _startTimers();
   }
 
@@ -172,6 +178,7 @@ class _Game01ScreenState extends State<Game01Screen> {
   void _pauseGame() {
     if (_status != _GameStatus.playing) return;
     _cancelAllTimers();
+    _bgm.pause();
     setState(() {
       _status = _GameStatus.paused;
     });
@@ -182,6 +189,7 @@ class _Game01ScreenState extends State<Game01Screen> {
     setState(() {
       _status = _GameStatus.playing;
     });
+    _bgm.resume();
     _startTimers();
   }
 
@@ -265,6 +273,8 @@ class _Game01ScreenState extends State<Game01Screen> {
   @override
   void dispose() {
     _cancelAllTimers();
+    _bgm.dispose();
+    AppBgm.home.start();
     super.dispose();
   }
 
