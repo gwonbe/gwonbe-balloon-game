@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:balloon_game/utils/base_game_state.dart';
+import 'package:balloon_game/utils/game_storage.dart';
 import 'package:balloon_game/widgets/balloon_painter.dart';
 import 'package:balloon_game/widgets/info_chip.dart';
 import 'package:flutter/material.dart';
@@ -72,6 +73,12 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
   @override
   bool get isPlaying => _status == _GameStatus.playing;
+
+  @override
+  String get bestScoreKey => GameStorage.bestScoreGame02;
+
+  @override
+  int get currentScore => _score;
 
   @override
   void cancelAllTimers() {

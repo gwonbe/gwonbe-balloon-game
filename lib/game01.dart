@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:balloon_game/utils/base_game_state.dart';
+import 'package:balloon_game/utils/game_storage.dart';
 import 'package:balloon_game/widgets/balloon_painter.dart';
 import 'package:balloon_game/widgets/info_chip.dart';
 import 'package:flutter/material.dart';
@@ -108,6 +109,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   Duration _lastTick = Duration.zero;
   double _playTime = 0; // 이번 단계에서 실제로 플레이한 시간(초). 일시정지 시간은 제외
 
+  int _maxLevelCleared  = 0; // 이번 플레이에서 도달한 최고 단계 (1~5, 시작 전이면 0)
   int _levelIndex = 0; // 0-based (0 -> 단계 1)
   LevelConfig get _currentLevel => kLevels[_levelIndex];
 
@@ -138,6 +140,12 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
 
   @override
   bool get isPlaying => _status == _GameStatus.playing;
+
+  @override
+  String get bestScoreKey => GameStorage.bestScoreGame01;
+
+  @override
+  int get currentScore => _maxLevelCleared ;
 
   @override
   void cancelAllTimers() {
@@ -234,9 +242,12 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   /// 단계 클리어 처리: 타이머 정지 + 음악 정지 + 상태 전환.
   void _finishLevelCleared() {
     cancelAllTimers();
-    stopBgm(); // 다이얼로그에 머무는 동안 음악 정지
+    stopBgm();
     setState(() {
       _timeLeft = 0;
+      if (_levelIndex + 1 > _maxLevelCleared) {
+        _maxLevelCleared = _levelIndex + 1; // ← 추가
+      }
       _status = (_levelIndex == kLevels.length - 1)
           ? _GameStatus.allCleared
           : _GameStatus.levelCleared;
@@ -404,7 +415,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
             children: [
               const SizedBox(height: 12),
               Text(
-                '총 ${kLevels.length}단계!\n'
+                '총 ${kLevels.length}단계\n'
                     '단계마다 $kLevelDurationSeconds초 동안 풍선을 터뜨리세요!\n'
                     '풍선을 $kMaxMiss개 놓치면 게임이 끝나요!\n'
                     '단계가 올라갈수록 풍선이 더 빨라져요!',

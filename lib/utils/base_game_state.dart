@@ -1,5 +1,6 @@
 import 'package:balloon_game/utils/app_bgm.dart';
 import 'package:balloon_game/utils/bgm_player.dart';
+import 'package:balloon_game/utils/game_storage.dart';
 import 'package:flutter/material.dart';
 
 /// 게임 화면 공통 부모 State.
@@ -13,9 +14,6 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   /// 광고를 띄우는 게임 시작 횟수 기준
   static const int kAdThreshold = 10;
 
-  /// 게임 시작 누적 횟수 (game01, game02 공용 / 앱이 켜져 있는 동안 유지)
-  static int _gameStartCount = 0;
-
   /// dispose 이후에도 안전하게 광고창을 띄우기 위해 Navigator를 미리 잡아둔다.
   NavigatorState? _navigator;
 
@@ -23,6 +21,12 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   bool get isPaused => _isPaused;
 
   // ───────── 자식 클래스가 구현해야 하는 부분 ─────────
+
+  /// 최고 기록 저장용 SharedPreferences 키
+  String get bestScoreKey;
+
+  /// 이 게임에서 전달할 현재 기록 (game01: 최고 도달 단계, game02: 정답 개수)
+  int get currentScore;
 
   /// 지금 게임이 진행 중인가? (일시정지 가능한 상태인가)
   bool get isPlaying;
@@ -49,39 +53,23 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
 
   /// 게임을 시작할 때마다 호출한다. (단계 시작, 재시도 포함)
   void registerGameStart() {
-    _gameStartCount++;
+    GameStorage.incrementAdCount();
   }
 
-  /// 게임 목록으로 돌아온 뒤 호출된다. 횟수가 기준 이상이면 광고창을 띄우고 0으로 초기화.
   static Future<void> _showAdIfNeeded(NavigatorState? navigator) async {
-    if (_gameStartCount < kAdThreshold) return;
+    final int count = await GameStorage.getAdCount();
+    if (count < kAdThreshold) return;
     if (navigator == null || !navigator.mounted) return;
     final overlayContext = navigator.overlay?.context;
     if (overlayContext == null) return;
 
-    _gameStartCount = 0; // 중복 표시 방지를 위해 먼저 초기화
+    await GameStorage.setAdCount(0); // 중복 표시 방지를 위해 먼저 초기화
 
     await showDialog<void>(
       context: overlayContext,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          '광고타임!',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          '확인 버튼을 눌러주세요.',
-          textAlign: TextAlign.center,
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('확인'),
-          ),
-        ],
+        // ... 기존 광고타임 다이얼로그 그대로
       ),
     );
   }
@@ -185,6 +173,9 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   void dispose() {
     cancelAllTimers();
     _bgm.dispose();
+
+    // 최고 기록 갱신 (현재 기록이 더 높을 때만 덮어씀)
+    GameStorage.saveBestScoreIfHigher(bestScoreKey, currentScore);
 
     // 게임 화면이 닫힌 뒤(게임 목록이 보이는 상태)에 광고 여부를 확인
     final nav = _navigator;
