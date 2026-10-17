@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:balloon_game/utils/app_bgm.dart';
-import 'package:balloon_game/utils/bgm_player.dart';
+import 'package:balloon_game/utils/base_game_state.dart';
+import 'package:balloon_game/widgets/balloon_painter.dart';
+import 'package:balloon_game/widgets/info_chip.dart';
 import 'package:flutter/material.dart';
 
-/// 게임 01: 풍선 터뜨리기
 class Game01Screen extends StatefulWidget {
   const Game01Screen({super.key});
 
@@ -52,8 +52,7 @@ final List<LevelConfig> kLevels = List.generate(9, (i) {
 
 enum _GameStatus {
   ready, // 시작 전
-  playing, // 진행 중
-  paused, // 일시정지
+  playing, // 진행 중 (일시정지는 부모의 isPaused로 관리)
   levelCleared, // 해당 단계 목표 달성
   levelFailed, // 시간 초과로 실패
   allCleared, // 마지막 단계까지 모두 클리어
@@ -77,7 +76,7 @@ class Balloon {
   });
 }
 
-class _Game01ScreenState extends State<Game01Screen> {
+class _Game01ScreenState extends BaseGameState<Game01Screen> {
   static const List<Color> balloonColors = [
     Colors.red,
     Colors.pink,
@@ -99,10 +98,7 @@ class _Game01ScreenState extends State<Game01Screen> {
   int _levelIndex = 0; // 0-based (0 -> 단계 1)
   LevelConfig get _currentLevel => kLevels[_levelIndex];
 
-  final BgmPlayer _bgm = BgmPlayer();
-
   // 목표 개수보다 실제로 화면에 더 많은 풍선이 나오도록 하는 배율
-  // (클리어 조건인 목표 개수는 그대로 유지, 화면만 더 풍성하게)
   int get _totalSpawnCount =>
       (_currentLevel.requiredBalloons * _currentLevel.spawnMultiplier).round();
 
@@ -114,33 +110,22 @@ class _Game01ScreenState extends State<Game01Screen> {
 
   Size _screenSize = Size.zero;
 
-  void _cancelAllTimers() {
+  // ───────── BaseGameState 구현부 ─────────
+
+  @override
+  bool get isPlaying => _status == _GameStatus.playing;
+
+  @override
+  void cancelAllTimers() {
     _gameTimer?.cancel();
     _spawnTimer?.cancel();
     _frameTimer?.cancel();
   }
 
-  void _startLevel(int levelIndex) {
-    _cancelAllTimers();
-    final LevelConfig config = kLevels[levelIndex];
-
-    setState(() {
-      _levelIndex = levelIndex;
-      _score = 0;
-      _spawnedCount = 0;
-      _timeLeft = config.durationSeconds;
-      _status = _GameStatus.playing;
-      _balloons.clear();
-    });
-
-    AppBgm.home.stop();
-    _bgm.start(); // 이미 재생 중이면 무시되므로 단계가 넘어가도 음악이 끊기지 않음
-    _startTimers();
-  }
-
   /// 현재 _score / _timeLeft / _spawnedCount / _balloons 상태를 그대로 두고
   /// 세 개의 타이머만 (다시) 시작한다. 레벨 시작 및 일시정지 후 재개에 공용으로 사용.
-  void _startTimers() {
+  @override
+  void startTimers() {
     final LevelConfig config = _currentLevel;
 
     // 남은 시간 카운트다운
@@ -175,34 +160,48 @@ class _Game01ScreenState extends State<Game01Screen> {
     });
   }
 
-  void _pauseGame() {
-    if (_status != _GameStatus.playing) return;
-    _cancelAllTimers();
-    _bgm.pause();
+  // ───────── 게임 로직 ─────────
+
+  void _startLevel(int levelIndex) {
+    cancelAllTimers();
+    final LevelConfig config = kLevels[levelIndex];
+
     setState(() {
-      _status = _GameStatus.paused;
+      _levelIndex = levelIndex;
+      _score = 0;
+      _spawnedCount = 0;
+      _timeLeft = config.durationSeconds;
+      _status = _GameStatus.playing;
+      _balloons.clear();
     });
+
+    // 클리어 다이얼로그에서 stopBgm()으로 멈춘 상태라면 처음부터 재생된다.
+    // (실패 후 재시도처럼 음악이 계속 재생 중이면 그대로 이어진다.)
+    startBgm();
+    startTimers();
   }
 
-  void _resumeGame() {
-    if (_status != _GameStatus.paused) return;
+  /// 단계 클리어 처리: 타이머 정지 + 음악 정지 + 상태 전환.
+  /// 시간 종료 시점과 목표 달성 시점에서 공용으로 사용.
+  void _finishLevelCleared() {
+    cancelAllTimers();
+    stopBgm(); // 다이얼로그에 머무는 동안 음악 정지
     setState(() {
-      _status = _GameStatus.playing;
+      _status = (_levelIndex == kLevels.length - 1)
+          ? _GameStatus.allCleared
+          : _GameStatus.levelCleared;
     });
-    _bgm.resume();
-    _startTimers();
   }
 
   void _onTimeUp() {
-    _cancelAllTimers();
+    if (_score >= _currentLevel.requiredBalloons) {
+      _finishLevelCleared();
+      return;
+    }
+    cancelAllTimers();
+    stopBgm(); // 실패 다이얼로그에서도 음악 정지
     setState(() {
-      if (_score >= _currentLevel.requiredBalloons) {
-        _status = (_levelIndex == kLevels.length - 1)
-            ? _GameStatus.allCleared
-            : _GameStatus.levelCleared;
-      } else {
-        _status = _GameStatus.levelFailed;
-      }
+      _status = _GameStatus.levelFailed;
     });
   }
 
@@ -239,7 +238,7 @@ class _Game01ScreenState extends State<Game01Screen> {
   }
 
   void _popBalloon(Balloon balloon) {
-    if (_status != _GameStatus.playing) return;
+    if (_status != _GameStatus.playing || isPaused) return;
     setState(() {
       _balloons.removeWhere((b) => b.id == balloon.id);
       _score++;
@@ -247,12 +246,7 @@ class _Game01ScreenState extends State<Game01Screen> {
 
     // 목표 개수를 다 터뜨렸다면 즉시 단계 클리어 처리
     if (_score >= _currentLevel.requiredBalloons) {
-      _cancelAllTimers();
-      setState(() {
-        _status = (_levelIndex == kLevels.length - 1)
-            ? _GameStatus.allCleared
-            : _GameStatus.levelCleared;
-      });
+      _finishLevelCleared();
     }
   }
 
@@ -270,12 +264,7 @@ class _Game01ScreenState extends State<Game01Screen> {
     _startLevel(0);
   }
 
-  @override
-  void dispose() {
-    _cancelAllTimers();
-    _bgm.dispose();
-    super.dispose();
-  }
+  // ───────── UI ─────────
 
   @override
   Widget build(BuildContext context) {
@@ -298,7 +287,7 @@ class _Game01ScreenState extends State<Game01Screen> {
                 ..._balloons.map(_buildBalloon),
                 _buildTopBar(),
                 if (_status == _GameStatus.ready) _buildStartOverlay(),
-                if (_status == _GameStatus.paused) _buildPausedOverlay(),
+                if (isPaused) buildPausedOverlay(),
                 if (_status == _GameStatus.levelCleared)
                   _buildLevelClearOverlay(),
                 if (_status == _GameStatus.levelFailed)
@@ -339,15 +328,13 @@ class _Game01ScreenState extends State<Game01Screen> {
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _circleButton(
-                  Icons.arrow_back, () => Navigator.of(context).maybePop(),
+                circleButton(
+                  Icons.arrow_back,
+                      () => Navigator.of(context).maybePop(),
                 ),
-                if (_status == _GameStatus.playing || _status == _GameStatus.paused) ...[
+                if (isPlaying || isPaused) ...[
                   const SizedBox(height: 8),
-                  _circleButton(
-                    _status == _GameStatus.paused ? Icons.play_arrow : Icons.pause,
-                    _status == _GameStatus.paused ? _resumeGame : _pauseGame,
-                  ),
+                  buildPauseButton(),
                 ],
               ],
             ),
@@ -355,21 +342,21 @@ class _Game01ScreenState extends State<Game01Screen> {
             // 오른쪽: 정보 칩 3개
             Row(
               children: [
-                _infoChip(
+                InfoChip(
                   icon: Icons.flag,
                   value: '${config.level}',
                   unit: '/${kLevels.length}',
                   width: 90,
                 ),
                 const SizedBox(width: 8),
-                _infoChip(
+                InfoChip(
                   icon: Icons.star,
                   value: '$_score',
                   unit: '/${config.requiredBalloons}',
                   width: 95,
                 ),
                 const SizedBox(width: 8),
-                _infoChip(
+                InfoChip(
                   icon: Icons.timer,
                   value: '$_timeLeft',
                   unit: '초',
@@ -378,83 +365,6 @@ class _Game01ScreenState extends State<Game01Screen> {
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _infoChip({
-    required IconData icon,
-    required String value,
-    required String unit,
-    double width = 105,
-  }) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 8,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // 왼쪽: 아이콘 고정
-          SizedBox(
-            width: 22,
-            child: Icon(
-              icon,
-              size: 18,
-              color: Colors.deepOrange,
-            ),
-          ),
-
-          // 가운데: 숫자만 가운데 정렬
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-            ),
-          ),
-
-          // 오른쪽: 단위 고정
-          Text(
-            unit,
-            textAlign: TextAlign.right,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _circleButton(IconData icon, VoidCallback onTap) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.85),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.black87),
         ),
       ),
     );
@@ -482,8 +392,8 @@ class _Game01ScreenState extends State<Game01Screen> {
               ElevatedButton(
                 onPressed: () => _startLevel(0),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 32, vertical: 14),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                   backgroundColor: Colors.orange,
                 ),
                 child: const Text(
@@ -498,94 +408,11 @@ class _Game01ScreenState extends State<Game01Screen> {
     );
   }
 
-  Widget _buildDialogCard({
-    required String title,
-    required String message,
-    required Color titleColor,
-    required VoidCallback onPrimaryAction,
-    required String primaryLabel,
-    required Color primaryColor,
-  }) {
-    return Container(
-      color: Colors.black.withValues(alpha: 0.5),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.all(28),
-          margin: const EdgeInsets.symmetric(horizontal: 40),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: titleColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                message,
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                    ),
-                    child: const Text('게임 중단'),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: onPrimaryAction,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      backgroundColor: primaryColor,
-                    ),
-                    child: Text(
-                      primaryLabel,
-                      style: const TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPausedOverlay() {
-    return _buildDialogCard(
-      title: '일시정지 ⏸️',
-      message:
-      '이어서 진행하세요!',
-      titleColor: Colors.blueGrey,
-      onPrimaryAction: _resumeGame,
-      primaryLabel: '다시 시작',
-      primaryColor: Colors.blue,
-    );
-  }
-
   Widget _buildLevelClearOverlay() {
     final LevelConfig cleared = kLevels[_levelIndex];
-    return _buildDialogCard(
+    return buildDialogCard(
       title: '단계 ${cleared.level} 클리어! 🎉',
-      message:
-      '풍선 ${cleared.requiredBalloons}개를 모두 터뜨렸어요!\n'
+      message: '풍선 ${cleared.requiredBalloons}개를 모두 터뜨렸어요!\n'
           '다음 단계에 도전할까요?',
       titleColor: Colors.green,
       onPrimaryAction: _goToNextLevel,
@@ -595,7 +422,7 @@ class _Game01ScreenState extends State<Game01Screen> {
   }
 
   Widget _buildLevelFailedOverlay() {
-    return _buildDialogCard(
+    return buildDialogCard(
       title: '시간 종료! ⏰',
       message: '아쉬워요!\n같은 단계부터 다시 도전해 보세요!',
       titleColor: Colors.redAccent,
@@ -606,7 +433,7 @@ class _Game01ScreenState extends State<Game01Screen> {
   }
 
   Widget _buildAllClearedOverlay() {
-    return _buildDialogCard(
+    return buildDialogCard(
       title: '전체 클리어! 🏆',
       message: '${kLevels.length}개 단계을 모두 완료했어요!\n정말 대단해요!',
       titleColor: Colors.deepOrange,
@@ -629,56 +456,8 @@ class _BalloonWidget extends StatelessWidget {
       width: size,
       height: size * 1.3,
       child: CustomPaint(
-        painter: _BalloonPainter(color: color),
+        painter: BalloonPainter(color: color),
       ),
     );
-  }
-}
-
-class _BalloonPainter extends CustomPainter {
-  final Color color;
-
-  _BalloonPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()..color = color;
-    final Rect balloonRect = Rect.fromLTWH(0, 0, size.width, size.height * 0.8);
-    final RRect rect = RRect.fromRectAndCorners(
-      balloonRect,
-      topLeft: Radius.circular(size.width / 2),
-      topRight: Radius.circular(size.width / 2),
-      bottomLeft: Radius.circular(size.width / 2.5),
-      bottomRight: Radius.circular(size.width / 2.5),
-    );
-    canvas.drawRRect(rect, paint);
-
-    // 하이라이트(반짝임)
-    final Paint highlightPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.4);
-    canvas.drawOval(
-      Rect.fromLTWH(
-        size.width * 0.2,
-        size.height * 0.15,
-        size.width * 0.2,
-        size.height * 0.15,
-      ),
-      highlightPaint,
-    );
-
-    // 풍선 줄
-    final Paint stringPaint = Paint()
-      ..color = Colors.grey.shade700
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-    final Path path = Path()
-      ..moveTo(size.width / 2, size.height * 0.8)
-      ..lineTo(size.width / 2, size.height);
-    canvas.drawPath(path, stringPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _BalloonPainter oldPainter) {
-    return oldPainter.color != color;
   }
 }
