@@ -156,6 +156,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
 
   void _startLevel(int levelIndex) {
     cancelAllTimers();
+    registerGameStart();
 
     setState(() {
       _levelIndex = levelIndex;
@@ -289,10 +290,6 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
     _startLevel(_levelIndex);
   }
 
-  void _restartFromBeginning() {
-    _startLevel(0);
-  }
-
   // ───────── UI ─────────
 
   @override
@@ -328,13 +325,9 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
                 ),
                 _buildTopBar(),
                 if (_status == _GameStatus.ready) _buildStartOverlay(),
-                if (isPaused) buildPausedOverlay(),
-                if (_status == _GameStatus.levelCleared)
-                  _buildLevelClearOverlay(),
-                if (_status == _GameStatus.levelFailed)
-                  _buildLevelFailedOverlay(),
-                if (_status == _GameStatus.allCleared)
-                  _buildAllClearedOverlay(),
+                if (_status == _GameStatus.levelCleared) _buildLevelClearOverlay(),
+                if (_status == _GameStatus.levelFailed) _buildLevelFailedOverlay(),
+                if (_status == _GameStatus.allCleared) _buildAllClearedOverlay(),
               ],
             ),
           );
@@ -367,19 +360,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                circleButton(
-                  Icons.arrow_back,
-                      () => Navigator.of(context).maybePop(),
-                ),
-                if (isPlaying || isPaused) ...[
-                  const SizedBox(height: 8),
-                  buildPauseButton(),
-                ],
-              ],
-            ),
+            buildPauseButton(),
 
             // 오른쪽: 정보 칩 3개 (단계 / 미스 / 남은 시간)
             Row(
@@ -480,9 +461,10 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
       title: '전체 클리어! 🏆',
       message: '${kLevels.length}개 단계를 모두 완료했어요!\n정말 대단해요!',
       titleColor: Colors.deepOrange,
-      onPrimaryAction: _restartFromBeginning,
-      primaryLabel: '처음부터',
+      onPrimaryAction: () => Navigator.of(context).maybePop(), // 게임 목록으로
+      primaryLabel: '확인',
       primaryColor: Colors.blue,
+      showQuitButton: false,
     );
   }
 }

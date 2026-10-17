@@ -4,12 +4,22 @@ import 'package:flutter/material.dart';
 
 /// 게임 화면 공통 부모 State.
 /// - BGM 재생/정지/일시정지/재개/해제
-/// - 게임 일시정지/재개 흐름과 공용 UI(일시정지 버튼, 오버레이, 다이얼로그)
+/// - 일시정지 버튼(확인창) 및 공용 다이얼로그 UI
 abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   final BgmPlayer _bgm = BgmPlayer();
   bool _isPaused = false;
+  bool _isDialogOpen = false;
 
-  /// 일시정지 중인지 여부
+  /// 광고를 띄우는 게임 시작 횟수 기준
+  static const int kAdThreshold = 10;
+
+  /// 게임 시작 누적 횟수 (game01, game02 공용 / 앱이 켜져 있는 동안 유지)
+  static int _gameStartCount = 0;
+
+  /// dispose 이후에도 안전하게 광고창을 띄우기 위해 Navigator를 미리 잡아둔다.
+  NavigatorState? _navigator;
+
+  /// 일시정지 중인지 여부 (일시정지 확인창이 떠 있는 동안 true)
   bool get isPaused => _isPaused;
 
   // ───────── 자식 클래스가 구현해야 하는 부분 ─────────
@@ -29,6 +39,53 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   /// 재개 직전에 추가로 처리할 것이 있으면 override (setState 안에서 호출됨)
   void onResume() {}
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _navigator = Navigator.of(context);
+  }
+
+  // ───────── 게임 시작 횟수 / 광고 ─────────
+
+  /// 게임을 시작할 때마다 호출한다. (단계 시작, 재시도 포함)
+  void registerGameStart() {
+    _gameStartCount++;
+  }
+
+  /// 게임 목록으로 돌아온 뒤 호출된다. 횟수가 기준 이상이면 광고창을 띄우고 0으로 초기화.
+  static Future<void> _showAdIfNeeded(NavigatorState? navigator) async {
+    if (_gameStartCount < kAdThreshold) return;
+    if (navigator == null || !navigator.mounted) return;
+    final overlayContext = navigator.overlay?.context;
+    if (overlayContext == null) return;
+
+    _gameStartCount = 0; // 중복 표시 방지를 위해 먼저 초기화
+
+    await showDialog<void>(
+      context: overlayContext,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          '광고타임!',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          '확인 버튼을 눌러주세요.',
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ───────── BGM ─────────
 
   /// 홈 BGM을 끄고 게임 BGM 시작.
@@ -45,7 +102,7 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
 
   // ───────── 일시정지 / 재개 ─────────
 
-  void pauseGame() {
+  void _pauseGame() {
     if (!isPlaying || _isPaused) return;
     cancelAllTimers();
     _bgm.pause();
@@ -55,7 +112,7 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     });
   }
 
-  void resumeGame() {
+  void _resumeGame() {
     if (!_isPaused) return;
     setState(() {
       onResume();
@@ -65,10 +122,76 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     startTimers();
   }
 
+  /// 일시정지 버튼을 눌렀을 때 호출.
+  /// 진행 중이면 게임/음악을 멈추고 확인창을 띄운다.
+  /// - 계속하기: 멈췄던 게임/음악을 이어서 재개
+  /// - 중단하기: 이전 화면으로 이동 (음악은 다시 재생하지 않음)
+  /// 시작 전이거나 결과 화면이면 이미 멈춰 있으므로 확인창만 띄운다.
+  Future<void> showPauseDialog() async {
+    if (_isDialogOpen) return;
+    _isDialogOpen = true;
+
+    final bool pausedByDialog = isPlaying && !_isPaused;
+    if (pausedByDialog) _pauseGame();
+
+    final bool? quit = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          '일시정지 ⏸️',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          '게임을 중단하시겠습니까?',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          // 왼쪽: 중단하기 (테두리만)
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('중단하기'),
+          ),
+          // 오른쪽: 계속하기 (색칠)
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('계속하기'),
+          ),
+        ],
+      ),
+    );
+
+    _isDialogOpen = false;
+    if (!mounted) return;
+
+    if (quit == true) {
+      // 홈으로 이동. dispose()에서 BGM이 해제되므로 음악은 다시 재생되지 않는다.
+      Navigator.of(context).pop();
+      return;
+    }
+
+    if (pausedByDialog) _resumeGame();
+  }
+
   @override
   void dispose() {
     cancelAllTimers();
     _bgm.dispose();
+
+    // 게임 화면이 닫힌 뒤(게임 목록이 보이는 상태)에 광고 여부를 확인
+    final nav = _navigator;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showAdIfNeeded(nav);
+    });
+
     super.dispose();
   }
 
@@ -89,25 +212,12 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     );
   }
 
-  /// 일시정지 / 재개 토글 버튼 (진행 중이거나 일시정지 중일 때만 표시)
+  /// 일시정지(⏸) 버튼. 누르면 일시정지 확인창을 띄운다.
   Widget buildPauseButton() {
-    return circleButton(
-      isPaused ? Icons.play_arrow : Icons.pause,
-      isPaused ? resumeGame : pauseGame,
-    );
+    return circleButton(Icons.pause, showPauseDialog);
   }
 
-  Widget buildPausedOverlay() {
-    return buildDialogCard(
-      title: '일시정지 ⏸️',
-      message: '이어서 진행하세요!',
-      titleColor: Colors.blueGrey,
-      onPrimaryAction: resumeGame,
-      primaryLabel: '다시 시작',
-      primaryColor: Colors.blue,
-    );
-  }
-
+  /// [showQuitButton]이 false면 '게임 중단' 버튼 없이 확인 버튼 하나만 보여준다.
   Widget buildDialogCard({
     required String title,
     required String message,
@@ -115,6 +225,7 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     required VoidCallback onPrimaryAction,
     required String primaryLabel,
     required Color primaryColor,
+    bool showQuitButton = true,
   }) {
     return Container(
       color: Colors.black.withValues(alpha: 0.5),
@@ -148,15 +259,17 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
+                  if (showQuitButton) ...[
+                    OutlinedButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
+                      ),
+                      child: const Text('중단하기'),
                     ),
-                    child: const Text('게임 중단'),
-                  ),
-                  const SizedBox(width: 12),
+                    const SizedBox(width: 12),
+                  ],
                   ElevatedButton(
                     onPressed: onPrimaryAction,
                     style: ElevatedButton.styleFrom(

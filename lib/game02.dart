@@ -184,6 +184,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
   void _startGame() {
     cancelAllTimers();
+    registerGameStart();
     _generateQuestion();
     setState(() {
       _score = 0;
@@ -273,7 +274,6 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
                 _buildTopBar(showBoard),
                 if (_feedbackText != null) _buildFeedbackOverlay(),
                 if (_status == _GameStatus.ready) _buildStartOverlay(),
-                if (isPaused) buildPausedOverlay(),
                 if (_status == _GameStatus.gameOver) _buildGameOverOverlay(),
               ],
             ),
@@ -350,19 +350,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    circleButton(
-                      Icons.arrow_back,
-                          () => Navigator.of(context).maybePop(),
-                    ),
-                    if (isPlaying || isPaused) ...[
-                      const SizedBox(height: 8),
-                      buildPauseButton(),
-                    ],
-                  ],
-                ),
+                buildPauseButton(),
                 Row(
                   children: [
                     InfoChip(
@@ -463,9 +451,10 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
       title: '시간 종료! ⏰',
       message: '최종 점수 : $_score',
       titleColor: Colors.black87,
-      onPrimaryAction: _startGame,
-      primaryLabel: '다시 시작',
+      onPrimaryAction: () => Navigator.of(context).maybePop(), // 게임 목록으로
+      primaryLabel: '확인',
       primaryColor: Colors.blue,
+      showQuitButton: false,
     );
   }
 }
