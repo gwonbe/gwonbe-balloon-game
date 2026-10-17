@@ -274,7 +274,6 @@ class _Game01ScreenState extends State<Game01Screen> {
   void dispose() {
     _cancelAllTimers();
     _bgm.dispose();
-    AppBgm.home.start();
     super.dispose();
   }
 

@@ -223,7 +223,6 @@ class _Game02ScreenState extends State<Game02Screen> {
   void dispose() {
     _cancelAllTimers();
     _bgm.dispose();
-    AppBgm.home.start();
     super.dispose();
   }
 
