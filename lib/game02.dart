@@ -13,28 +13,102 @@ class Game02Screen extends StatefulWidget {
   State<Game02Screen> createState() => _Game02ScreenState();
 }
 
+// ───────── 상수 ─────────
+
+/// 제한 시간(초)
+const int kGame02Duration = 60;
+
+/// 3x3 그리드
+const int _kGridColumns = 3;
+const int _kGridCount = 9;
+
+/// 구구단 단 범위 (문제: 단 × 1~9)
+const int _kMinDan = 2;
+const int _kMaxDan = 9;
+
+/// 정답/오답 메시지 표시 시간
+const Duration _kFeedbackDuration = Duration(milliseconds: 700);
+
+/// 풍선이 터지는 애니메이션 시간
+const Duration _kPopDuration = Duration(milliseconds: 180);
+
+const List<Color> _kBalloonPalette = [
+  Colors.red,
+  Colors.pink,
+  Colors.orange,
+  Colors.amber,
+  Colors.green,
+  Colors.teal,
+  Colors.blue,
+  Colors.indigo,
+  Colors.purple,
+];
+
+/// 구구단에 나올 수 있는 모든 곱셈 결과 (오답 후보 풀)
+final List<int> _kAllProducts = {
+  for (int i = 1; i <= 9; i++)
+    for (int j = 1; j <= 9; j++) i * j,
+}.toList();
+
 enum _GameStatus {
   ready, // 시작 전
   playing, // 진행 중 (일시정지는 부모의 isPaused로 관리)
   gameOver, // 시간 종료
 }
 
+// ───────── 모델 ─────────
+
+/// 구구단 문제 하나: dan × multiplier
+class _Question {
+  final int dan;
+  final int multiplier;
+
+  const _Question(this.dan, this.multiplier);
+
+  int get answer => dan * multiplier;
+
+  factory _Question.random(Random random) {
+    return _Question(
+      _kMinDan + random.nextInt(_kMaxDan - _kMinDan + 1),
+      1 + random.nextInt(9),
+    );
+  }
+
+  /// 정답 1개 + 오답 8개를 섞어서 반환한다.
+  /// 오답은 헷갈리기 쉬운 값(옆 단/옆 곱)을 먼저 넣고, 부족하면 구구단 결과에서 채운다.
+  List<int> buildChoices(Random random) {
+    final Set<int> wrong = {};
+
+    final List<int> near = [
+      if (multiplier > 1) dan * (multiplier - 1),
+      if (multiplier < 9) dan * (multiplier + 1),
+      if (dan > 1) (dan - 1) * multiplier,
+      if (dan < 9) (dan + 1) * multiplier,
+    ]..shuffle(random);
+    wrong.addAll(near.where((v) => v != answer));
+
+    final List<int> pool = _kAllProducts
+        .where((v) => v != answer && !wrong.contains(v))
+        .toList()
+      ..shuffle(random);
+    wrong.addAll(pool.take(_kGridCount - 1 - wrong.length));
+
+    return [answer, ...wrong.take(_kGridCount - 1)]..shuffle(random);
+  }
+}
+
+/// 그리드 한 칸의 풍선
+class _Cell {
+  final int value;
+  final Color color;
+  bool popped = false;
+
+  _Cell({required this.value, required this.color});
+}
+
+// ───────── State ─────────
+
 class _Game02ScreenState extends BaseGameState<Game02Screen> {
-  static const int gameDuration = 60; // 제한 시간(초)
-  static const int gridCount = 9; // 3x3
-
-  static const List<Color> balloonColorPalette = [
-    Colors.red,
-    Colors.pink,
-    Colors.orange,
-    Colors.amber,
-    Colors.green,
-    Colors.teal,
-    Colors.blue,
-    Colors.indigo,
-    Colors.purple,
-  ];
-
   final Random _random = Random();
 
   Timer? _gameTimer; // 1초마다 남은 시간 감소
@@ -42,32 +116,17 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
   _GameStatus _status = _GameStatus.ready;
   int _score = 0;
-  int _timeLeft = gameDuration;
+  int _timeLeft = kGame02Duration;
 
-  // 현재 문제
-  int _operand1 = 0;
-  int _operand2 = 0;
-  String _operator = '+'; // '+', '-', '*', '/'
-  int _answer = 0;
+  _Question _question = const _Question(2, 1);
+  List<_Cell> _cells = const [];
 
-  // 3x3 그리드 (고정 위치, 매 문제마다 값/색만 교체)
-  List<int> _gridValues = List.filled(gridCount, 0);
-  List<Color> _gridColors = List.filled(gridCount, Colors.blue);
+  // 정답을 맞혀서 메시지가 끝나면 새 문제로 넘어가야 하는 상태
+  bool _pendingNext = false;
 
   // 정답/오답 피드백 메시지
   String? _feedbackText;
   bool _feedbackCorrect = false;
-
-  String get _operatorSymbol {
-    switch (_operator) {
-      case '*':
-        return '×';
-      case '/':
-        return '÷';
-      default:
-        return _operator;
-    }
-  }
 
   // ───────── BaseGameState 구현부 ─────────
 
@@ -88,120 +147,50 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
   @override
   void startTimers() {
-    _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _gameTimer?.cancel();
+    _gameTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_status != _GameStatus.playing) return;
-      setState(() {
-        _timeLeft--;
-      });
-      if (_timeLeft <= 0) {
-        _endGame();
-      }
+      setState(() => _timeLeft--);
+      if (_timeLeft <= 0) _endGame();
     });
   }
 
   @override
   void onPause() {
-    // 피드백 타이머가 취소되므로, 메시지가 화면에 남지 않게 미리 지운다.
+    // 피드백 타이머가 취소되므로 메시지를 미리 지우고, 넘어갈 문제가 있으면 처리한다.
     _feedbackText = null;
+    if (_pendingNext) _prepareNextQuestion();
   }
 
   // ───────── 게임 로직 ─────────
 
-  void _generateQuestion() {
-    final List<String> ops = ['+', '-', '*', '/'];
-    final String op = ops[_random.nextInt(ops.length)];
-    int a, b, answer;
+  /// 새 문제와 새 풍선 9개를 만든다. (setState 없음: setState 안이나 직전에 호출)
+  void _prepareNextQuestion() {
+    _question = _Question.random(_random);
 
-    switch (op) {
-      case '-':
-        a = _random.nextInt(10); // 0~9
-        b = _random.nextInt(10); // 0~9
-        if (a < b) {
-          final int t = a;
-          a = b;
-          b = t;
-        }
-        answer = a - b;
-        break;
-      case '*':
-        a = _random.nextInt(10); // 0~9
-        b = _random.nextInt(10); // 0~9
-        answer = a * b;
-        break;
-      case '/':
-        b = 1 + _random.nextInt(9); // 1~9 (0으로 나누기 방지)
-        final int maxQ = 9 ~/ b; // 피연산자(a)도 한 자리 수가 되도록 몫 제한
-        final int q = _random.nextInt(maxQ + 1); // 0~maxQ
-        a = b * q;
-        answer = q;
-        break;
-      case '+':
-      default:
-        a = _random.nextInt(10); // 0~9
-        b = _random.nextInt(10); // 0~9
-        answer = a + b;
-        break;
-    }
+    final List<int> values = _question.buildChoices(_random);
+    final List<Color> colors = List<Color>.from(_kBalloonPalette)
+      ..shuffle(_random);
 
-    _operand1 = a;
-    _operand2 = b;
-    _operator = op;
-    _answer = answer;
-  }
-
-  int _wrongRangeMax() {
-    switch (_operator) {
-      case '-':
-        return 9;
-      case '*':
-        return 81;
-      case '/':
-        return 9;
-      case '+':
-      default:
-        return 18;
-    }
-  }
-
-  /// 정답 1개 + 서로 다른 오답 8개를 뽑아 9칸에 무작위로 배치하고,
-  /// 색상도 매번 섞어서 모두 다르게 배정한다.
-  void _generateGrid() {
-    final int maxVal = _wrongRangeMax();
-    final List<int> pool = [
-      for (int i = 0; i <= maxVal; i++)
-        if (i != _answer) i,
-    ];
-    pool.shuffle(_random);
-
-    final List<int> values = [_answer, ...pool.take(gridCount - 1)];
-    values.shuffle(_random);
-
-    final List<Color> colors = List<Color>.from(balloonColorPalette);
-    colors.shuffle(_random);
-    // 팔레트가 9개보다 적을 경우를 대비한 안전장치
-    while (colors.length < gridCount) {
-      colors.add(balloonColorPalette[_random.nextInt(balloonColorPalette.length)]);
-    }
-
-    setState(() {
-      _gridValues = values;
-      _gridColors = colors.take(gridCount).toList();
-    });
+    _cells = List.generate(
+      _kGridCount,
+          (i) => _Cell(value: values[i], color: colors[i]),
+    );
+    _pendingNext = false;
   }
 
   void _startGame() {
     cancelAllTimers();
     registerGameStart();
-    _generateQuestion();
+    _prepareNextQuestion();
     setState(() {
       _score = 0;
-      _timeLeft = gameDuration;
+      _timeLeft = kGame02Duration;
       _status = _GameStatus.playing;
       _feedbackText = null;
     });
-    _generateGrid();
 
-    startBgm(); // 이미 재생 중이면 무시되므로 '다시 시작'해도 음악이 끊기지 않음
+    startBgm(); // 이미 재생 중이면 무시된다.
     startTimers();
   }
 
@@ -211,6 +200,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
     setState(() {
       _status = _GameStatus.gameOver;
       _feedbackText = null;
+      _pendingNext = false;
     });
   }
 
@@ -220,10 +210,12 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
       _feedbackCorrect = correct;
       _feedbackText = correct ? '딩동댕!' : '땡!';
     });
-    _feedbackTimer = Timer(const Duration(milliseconds: 700), () {
+    _feedbackTimer = Timer(_kFeedbackDuration, () {
       if (!mounted) return;
       setState(() {
         _feedbackText = null;
+        // 정답이었다면 메시지가 끝난 뒤 새 문제와 새 풍선을 만든다.
+        if (_pendingNext) _prepareNextQuestion();
       });
     });
   }
@@ -231,16 +223,21 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
   void _onTapCell(int index) {
     if (_status != _GameStatus.playing || isPaused) return;
     if (_feedbackText != null) return; // 메시지 표시 중 중복 탭 방지
+    if (_cells[index].popped) return;
 
-    final int value = _gridValues[index];
-    if (value == _answer) {
+    if (_cells[index].value == _question.answer) {
+      // 정답: 점수 +1, 모든 풍선 터뜨리기
       setState(() {
         _score++;
+        for (final cell in _cells) {
+          cell.popped = true;
+        }
+        _pendingNext = true;
       });
       _showFeedback(true);
-      _generateQuestion();
-      _generateGrid();
     } else {
+      // 오답: 누른 풍선만 터뜨리기
+      setState(() => _cells[index].popped = true);
       _showFeedback(false);
     }
   }
@@ -253,97 +250,66 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
     final bool showBoard = _status == _GameStatus.playing && !isPaused;
 
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Container(
-            width: constraints.maxWidth,
-            height: constraints.maxHeight,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF87CEEB), Color(0xFFE0F7FA)],
-              ),
-            ),
-            child: Stack(
-              children: [
-                if (showBoard)
-                  Positioned.fill(
-                    child: SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 140),
-                        child: Center(
-                          child: _buildGrid(constraints),
-                        ),
-                      ),
-                    ),
-                  ),
-                _buildTopBar(showBoard),
-                if (_feedbackText != null) _buildFeedbackOverlay(),
-                if (_status == _GameStatus.ready) _buildStartOverlay(),
-                if (_status == _GameStatus.gameOver) _buildGameOverOverlay(),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildGrid(BoxConstraints constraints) {
-    const int columns = 3;
-    const double gap = 16;
-    final double gridWidth = min(constraints.maxWidth * 0.85, 340);
-    final double cellSize = (gridWidth - gap * (columns - 1)) / columns;
-
-    return SizedBox(
-      width: gridWidth,
-      child: Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        children: List.generate(gridCount, (index) {
-          return GestureDetector(
-            onTap: () => _onTapCell(index),
-            child: _LabeledBalloonWidget(
-              size: cellSize,
-              color: _gridColors[index],
-              label: '${_gridValues[index]}',
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _buildFeedbackOverlay() {
-    return Center(
-      child: AnimatedOpacity(
-        opacity: _feedbackText != null ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 150),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-          decoration: BoxDecoration(
-            color: (_feedbackCorrect ? Colors.green : Colors.red)
-                .withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Text(
-            _feedbackText ?? '',
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF87CEEB), Color(0xFFE0F7FA)],
           ),
         ),
+        child: Stack(
+          children: [
+            if (showBoard)
+              Positioned.fill(
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 140),
+                    child: Center(child: _buildGrid()),
+                  ),
+                ),
+              ),
+            _buildTopBar(showBoard),
+            if (_feedbackText != null)
+              _FeedbackOverlay(
+                text: _feedbackText!,
+                correct: _feedbackCorrect,
+              ),
+            if (_status == _GameStatus.ready)
+              _StartOverlay(onStart: _startGame),
+            if (_status == _GameStatus.gameOver) _buildGameOverOverlay(),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildGrid() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const double gap = 16;
+        final double gridWidth = min(constraints.maxWidth * 0.85, 340);
+        final double cellSize =
+            (gridWidth - gap * (_kGridColumns - 1)) / _kGridColumns;
+
+        return SizedBox(
+          width: gridWidth,
+          child: Wrap(
+            spacing: gap,
+            runSpacing: gap,
+            children: [
+              for (int i = 0; i < _cells.length; i++)
+                _PoppableBalloon(
+                  size: cellSize,
+                  cell: _cells[i],
+                  onTap: () => _onTapCell(i),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -379,7 +345,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
             ),
             if (showBoard) ...[
               const SizedBox(height: 14),
-              _buildQuestionBoard(),
+              _QuestionBoard(question: _question),
             ],
           ],
         ),
@@ -387,7 +353,29 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
     );
   }
 
-  Widget _buildQuestionBoard() {
+  Widget _buildGameOverOverlay() {
+    return buildDialogCard(
+      title: '시간 종료! ⏰',
+      message: '맞힌 개수 : $_score',
+      titleColor: Colors.black87,
+      onPrimaryAction: () => Navigator.of(context).maybePop(), // 게임 목록으로
+      primaryLabel: '확인',
+      primaryColor: Colors.blue,
+      showQuitButton: false,
+    );
+  }
+}
+
+// ───────── 위젯 ─────────
+
+/// 상단 문제 표시: [단] × [곱]
+class _QuestionBoard extends StatelessWidget {
+  final _Question question;
+
+  const _QuestionBoard({required this.question});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
@@ -397,29 +385,111 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _LabeledBalloonWidget(
+          _LabeledBalloon(
             size: 56,
             color: Colors.blueAccent,
-            label: '$_operand1',
+            label: '${question.dan}',
           ),
           const SizedBox(width: 10),
-          _LabeledBalloonWidget(
+          const _LabeledBalloon(
             size: 56,
             color: Colors.redAccent,
-            label: _operatorSymbol,
+            label: '×',
           ),
           const SizedBox(width: 10),
-          _LabeledBalloonWidget(
+          _LabeledBalloon(
             size: 56,
             color: Colors.blueAccent,
-            label: '$_operand2',
+            label: '${question.multiplier}',
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildStartOverlay() {
+/// 터지면(커지면서 투명해짐) 탭이 막히는 그리드 풍선.
+/// 자리는 그대로 유지되므로 나머지 풍선의 위치가 밀리지 않는다.
+class _PoppableBalloon extends StatelessWidget {
+  final double size;
+  final _Cell cell;
+  final VoidCallback onTap;
+
+  const _PoppableBalloon({
+    required this.size,
+    required this.cell,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool popped = cell.popped;
+    return IgnorePointer(
+      ignoring: popped,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedScale(
+          scale: popped ? 1.4 : 1.0,
+          duration: _kPopDuration,
+          child: AnimatedOpacity(
+            opacity: popped ? 0.0 : 1.0,
+            duration: _kPopDuration,
+            child: _LabeledBalloon(
+              size: size,
+              color: cell.color,
+              label: '${cell.value}',
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 딩동댕! / 땡! 메시지
+class _FeedbackOverlay extends StatelessWidget {
+  final String text;
+  final bool correct;
+
+  const _FeedbackOverlay({required this.text, required this.correct});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+        decoration: BoxDecoration(
+          color: (correct ? Colors.green : Colors.red).withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 게임 시작 전 안내
+class _StartOverlay extends StatelessWidget {
+  final VoidCallback onStart;
+
+  const _StartOverlay({required this.onStart});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       color: Colors.black.withValues(alpha: 0.4),
       child: Center(
@@ -429,13 +499,14 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                '계산식의 정답을 찾아 터뜨리세요!\n$gameDuration초 동안 최대한 많이 맞혀보세요!',
+                '구구단의 정답을 찾아 터뜨리세요!\n'
+                    '$kGame02Duration초 동안 최대한 많이 맞혀보세요!',
                 style: TextStyle(fontSize: 16, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _startGame,
+                onPressed: onStart,
                 style: ElevatedButton.styleFrom(
                   padding:
                   const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
@@ -452,27 +523,15 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
       ),
     );
   }
-
-  Widget _buildGameOverOverlay() {
-    return buildDialogCard(
-      title: '시간 종료! ⏰',
-      message: '최종 점수 : $_score',
-      titleColor: Colors.black87,
-      onPrimaryAction: () => Navigator.of(context).maybePop(), // 게임 목록으로
-      primaryLabel: '확인',
-      primaryColor: Colors.blue,
-      showQuitButton: false,
-    );
-  }
 }
 
-/// 숫자/연산자 텍스트가 표시된 풍선 위젯 (그리드와 상단 문제 풍선 공용)
-class _LabeledBalloonWidget extends StatelessWidget {
+/// 숫자/기호 텍스트가 표시된 풍선 (그리드와 상단 문제 풍선 공용)
+class _LabeledBalloon extends StatelessWidget {
   final double size;
   final Color color;
   final String label;
 
-  const _LabeledBalloonWidget({
+  const _LabeledBalloon({
     required this.size,
     required this.color,
     required this.label,

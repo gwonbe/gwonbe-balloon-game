@@ -57,19 +57,39 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   }
 
   static Future<void> _showAdIfNeeded(NavigatorState? navigator) async {
-    final int count = await GameStorage.getAdCount();
-    if (count < kAdThreshold) return;
     if (navigator == null || !navigator.mounted) return;
-    final overlayContext = navigator.overlay?.context;
-    if (overlayContext == null) return;
 
-    await GameStorage.setAdCount(0); // 중복 표시 방지를 위해 먼저 초기화
+    final int count = await GameStorage.getAdCount();
+    if (!navigator.mounted) return;
+
+    if (count < kAdThreshold) return;
+
+    await GameStorage.setAdCount(0);
+    if (!navigator.mounted) return;
 
     await showDialog<void>(
-      context: overlayContext,
+      context: navigator.context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        // ... 기존 광고타임 다이얼로그 그대로
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Text(
+          '광고타임!',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          '확인 버튼을 눌러주세요.',
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('확인'),
+          ),
+        ],
       ),
     );
   }
@@ -111,10 +131,6 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   }
 
   /// 일시정지 버튼을 눌렀을 때 호출.
-  /// 진행 중이면 게임/음악을 멈추고 확인창을 띄운다.
-  /// - 계속하기: 멈췄던 게임/음악을 이어서 재개
-  /// - 중단하기: 이전 화면으로 이동 (음악은 다시 재생하지 않음)
-  /// 시작 전이거나 결과 화면이면 이미 멈춰 있으므로 확인창만 띄운다.
   Future<void> showPauseDialog() async {
     if (_isDialogOpen) return;
     _isDialogOpen = true;
@@ -122,8 +138,19 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     final bool pausedByDialog = isPlaying && !_isPaused;
     if (pausedByDialog) _pauseGame();
 
+    // 비동기 작업 전에 Navigator를 확보한다.
+    final navigator = _navigator;
+
+    if (navigator == null || !navigator.mounted) {
+      _isDialogOpen = false;
+      if (pausedByDialog && mounted) {
+        _resumeGame();
+      }
+      return;
+    }
+
     final bool? quit = await showDialog<bool>(
-      context: context,
+      context: navigator.context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -139,12 +166,10 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
-          // 왼쪽: 중단하기 (테두리만)
           OutlinedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('중단하기'),
           ),
-          // 오른쪽: 계속하기 (색칠)
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             style: ElevatedButton.styleFrom(
@@ -158,11 +183,12 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     );
 
     _isDialogOpen = false;
-    if (!mounted) return;
+
+    // await 이후에는 State와 Navigator의 생존 여부를 각각 확인한다.
+    if (!mounted || !navigator.mounted) return;
 
     if (quit == true) {
-      // 홈으로 이동. dispose()에서 BGM이 해제되므로 음악은 다시 재생되지 않는다.
-      Navigator.of(context).pop();
+      navigator.pop();
       return;
     }
 

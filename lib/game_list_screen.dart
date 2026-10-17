@@ -1,5 +1,6 @@
 import 'package:balloon_game/game01.dart';
 import 'package:balloon_game/game02.dart';
+import 'package:balloon_game/game03.dart';
 import 'package:balloon_game/utils/game_storage.dart';
 import 'package:flutter/material.dart';
 
@@ -39,11 +40,19 @@ class _GameListScreenState extends State<GameListScreen> {
       bestScoreLabel: (score) => '$score / $kLevelCount 단계 클리어',
     ),
     GameItem(
+      title: '구구단을 외자',
+      description: '구구단 정답 풍선을 터뜨리세요!\n',
+      icon: Icons.close,
+      builder: (context) => const Game02Screen(),
+      bestScoreKey: GameStorage.bestScoreGame02,
+      bestScoreLabel: (score) => '$score개 정답',
+    ),
+    GameItem(
       title: '사칙연산',
       description: '사칙연산 정답 풍선을 터뜨리세요!\n',
       icon: Icons.calculate,
-      builder: (context) => const Game02Screen(),
-      bestScoreKey: GameStorage.bestScoreGame02,
+      builder: (context) => const Game03Screen(),
+      bestScoreKey: GameStorage.bestScoreGame03,
       bestScoreLabel: (score) => '$score개 정답',
     ),
   ];

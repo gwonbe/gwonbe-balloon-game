@@ -8,6 +8,7 @@ class GameStorage {
   static const String adCountKey = 'adCount';
   static const String bestScoreGame01 = 'bestScoreGame01';
   static const String bestScoreGame02 = 'bestScoreGame02';
+  static const String bestScoreGame03 = 'bestScoreGame03';
 
   /// 최고 기록이 저장될 때마다 값이 바뀐다. 목록 화면이 이를 듣고 다시 읽는다.
   static final ValueNotifier<int> bestScoreChanged = ValueNotifier<int>(0);

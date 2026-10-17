@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// 풍선 그리기 (몸통 + 하이라이트 + 줄). Game01/Game02 공용.
+/// 풍선 그리기 (몸통 + 하이라이트 + 줄).
 class BalloonPainter extends CustomPainter {
   final Color color;
 
