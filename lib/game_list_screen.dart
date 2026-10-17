@@ -19,12 +19,12 @@ class GameListScreen extends StatelessWidget {
 
   static final List<GameItem> _games = [
     GameItem(
-      title: '터뜨리기',
+      title: '둥실둥실',
       icon: Icons.bubble_chart,
       builder: (context) => const Game01Screen(),
     ),
     GameItem(
-      title: '계산하기',
+      title: '사칙연산',
       icon: Icons.calculate,
       builder: (context) => const Game02Screen(),
     ),

@@ -1,9 +1,9 @@
-import 'dart:async';
 import 'dart:math';
 import 'package:balloon_game/utils/base_game_state.dart';
 import 'package:balloon_game/widgets/balloon_painter.dart';
 import 'package:balloon_game/widgets/info_chip.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 class Game01Screen extends StatefulWidget {
   const Game01Screen({super.key});
@@ -12,59 +12,64 @@ class Game01Screen extends StatefulWidget {
   State<Game01Screen> createState() => _Game01ScreenState();
 }
 
-/// 단계별 설정: 제한 시간, 목표 풍선 개수, 풍선 속도/크기 범위, 스폰 밀도
+/// 전체 단계 수
+const int kLevelCount = 5;
+
+/// 모든 단계 공통 제한 시간(초)
+const int kLevelDurationSeconds = 30;
+
+/// 이 횟수만큼 풍선을 놓치면 게임 종료
+const int kMaxMiss = 5;
+
+/// 모든 단계 공통 풍선 크기 범위 (단계가 올라가도 크기는 그대로)
+const double kBalloonMinSize = 45;
+const double kBalloonMaxSize = 75;
+
+/// 기존 동작(프레임당 speed * 0.03, 16ms 간격)과 같은 체감 속도를 유지하기 위한 배율.
+/// 실제 이동 속도(px/sec) = speed * 이 값
+const double _kSpeedScale = 1.875;
+
+/// 단계별 설정: 풍선 속도 범위, 제한 시간 동안 나오는 풍선 수
 class LevelConfig {
   final int level;
-  final int durationSeconds;
-  final int requiredBalloons;
-  final double minSpeed; // px/sec
-  final double maxSpeed; // px/sec
-  final double minSize;
-  final double maxSize;
-  final double spawnMultiplier; // 목표 개수 대비 실제 화면에 나오는 풍선 배율
+  final int spawnCount; // 제한 시간 동안 화면에 나오는 풍선 총 개수
+  final double minSpeed;
+  final double maxSpeed;
 
   const LevelConfig({
     required this.level,
-    required this.durationSeconds,
-    required this.requiredBalloons,
+    required this.spawnCount,
     required this.minSpeed,
     required this.maxSpeed,
-    required this.minSize,
-    required this.maxSize,
-    required this.spawnMultiplier,
   });
 }
 
-/// 9단계: 시간 60->20초(5초씩 감소), 목표 개수 16->48개(4개씩 증가),
-/// 단계가 오를수록 풍선은 더 빠르고/작아지고, 화면에 더 많이 나옵니다.
-final List<LevelConfig> kLevels = List.generate(9, (i) {
+/// 모든 단계 30초 고정, 풍선 크기 고정.
+/// 단계가 오를수록 풍선이 빨라지고, 화면에 더 많이 나옵니다.
+final List<LevelConfig> kLevels = List.generate(kLevelCount, (i) {
   return LevelConfig(
     level: i + 1,
-    durationSeconds: 60 - i * 5,
-    requiredBalloons: 16 + i * 4,
-    minSpeed: (90 + i * 15).toDouble(),
-    maxSpeed: (160 + i * 20).toDouble(),
-    minSize: (50 - i * 3).clamp(26, 100).toDouble(),
-    maxSize: (85 - i * 5).clamp(40, 120).toDouble(),
-    spawnMultiplier: 1.3 + i * 0.1,
+    spawnCount: 20 + i * 8,
+    minSpeed: (100 + i * 30).toDouble(), // 100, 130, 160, 190, 220
+    maxSpeed: (160 + i * 45).toDouble(), // 160, 205, 250, 295, 340
   );
 });
 
 enum _GameStatus {
   ready, // 시작 전
   playing, // 진행 중 (일시정지는 부모의 isPaused로 관리)
-  levelCleared, // 해당 단계 목표 달성
-  levelFailed, // 시간 초과로 실패
+  levelCleared, // 30초를 버텨서 해당 단계 클리어
+  levelFailed, // 풍선을 kMaxMiss개 놓쳐서 실패
   allCleared, // 마지막 단계까지 모두 클리어
 }
 
 class Balloon {
   final int id;
-  double x; // 0.0 ~ 1.0 (가로 상대 위치)
+  final double x; // 0.0 ~ 1.0 (가로 상대 위치)
   double y; // 세로 픽셀 위치 (위에서부터)
   final double size;
   final Color color;
-  final double speed; // px/sec
+  final double speed;
 
   Balloon({
     required this.id,
@@ -76,7 +81,13 @@ class Balloon {
   });
 }
 
-class _Game01ScreenState extends BaseGameState<Game01Screen> {
+/// 풍선 레이어만 다시 그리게 하기 위한 알림 객체
+class _FrameNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
+
+class _Game01ScreenState extends BaseGameState<Game01Screen>
+    with SingleTickerProviderStateMixin {
   static const List<Color> balloonColors = [
     Colors.red,
     Colors.pink,
@@ -89,26 +100,39 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
 
   final Random _random = Random();
   final List<Balloon> _balloons = [];
+  final _FrameNotifier _frameNotifier = _FrameNotifier();
   int _nextId = 0;
 
-  Timer? _gameTimer; // 1초마다 남은 시간 감소
-  Timer? _spawnTimer; // 목표 개수만큼 풍선을 시간 내에 골고루 생성
-  Timer? _frameTimer; // 풍선 위치 업데이트(약 60fps)
+  // 이동 / 스폰 / 남은 시간을 모두 이 Ticker 하나로 처리한다.
+  late final Ticker _ticker;
+  Duration _lastTick = Duration.zero;
+  double _playTime = 0; // 이번 단계에서 실제로 플레이한 시간(초). 일시정지 시간은 제외
 
   int _levelIndex = 0; // 0-based (0 -> 단계 1)
   LevelConfig get _currentLevel => kLevels[_levelIndex];
 
-  // 목표 개수보다 실제로 화면에 더 많은 풍선이 나오도록 하는 배율
-  int get _totalSpawnCount =>
-      (_currentLevel.requiredBalloons * _currentLevel.spawnMultiplier).round();
+  int get _totalSpawnCount => _currentLevel.spawnCount;
 
-  int _score = 0; // 이번 단계에서 터뜨린 풍선 수
+  int _miss = 0; // 이번 단계에서 놓친 풍선 수 (단계 시작 시 0으로 초기화)
   int _spawnedCount = 0; // 이번 단계에서 이미 생성된 풍선 수
   int _timeLeft = 0;
 
   _GameStatus _status = _GameStatus.ready;
 
   Size _screenSize = Size.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker(_onTick);
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    _frameNotifier.dispose();
+    super.dispose();
+  }
 
   // ───────── BaseGameState 구현부 ─────────
 
@@ -117,87 +141,109 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
 
   @override
   void cancelAllTimers() {
-    _gameTimer?.cancel();
-    _spawnTimer?.cancel();
-    _frameTimer?.cancel();
+    if (_ticker.isActive) _ticker.stop();
   }
 
-  /// 현재 _score / _timeLeft / _spawnedCount / _balloons 상태를 그대로 두고
-  /// 세 개의 타이머만 (다시) 시작한다. 레벨 시작 및 일시정지 후 재개에 공용으로 사용.
+  /// 현재 _miss / _playTime / _spawnedCount / _balloons 상태를 그대로 두고
+  /// Ticker만 (다시) 시작한다. 단계 시작 및 일시정지 후 재개에 공용으로 사용.
   @override
   void startTimers() {
-    final LevelConfig config = _currentLevel;
-
-    // 남은 시간 카운트다운
-    _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_status != _GameStatus.playing) return;
-      setState(() {
-        _timeLeft--;
-      });
-      if (_timeLeft <= 0) {
-        _onTimeUp();
-      }
-    });
-
-    // 목표 개수보다 많은 풍선(_totalSpawnCount)이 제한 시간 안에 고르게 나오도록 간격 계산
-    final int intervalMs =
-    ((config.durationSeconds * 1000) / _totalSpawnCount).round();
-    _spawnTimer = Timer.periodic(
-      Duration(milliseconds: intervalMs.clamp(100, 5000)),
-          (timer) {
-        if (_status != _GameStatus.playing) return;
-        if (_spawnedCount >= _totalSpawnCount) {
-          timer.cancel();
-          return;
-        }
-        _spawnBalloon();
-      },
-    );
-
-    _frameTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      if (_status != _GameStatus.playing) return;
-      _updateBalloons();
-    });
+    _lastTick = Duration.zero; // Ticker는 시작할 때마다 elapsed가 0부터 시작
+    if (!_ticker.isActive) _ticker.start();
   }
 
   // ───────── 게임 로직 ─────────
 
   void _startLevel(int levelIndex) {
     cancelAllTimers();
-    final LevelConfig config = kLevels[levelIndex];
 
     setState(() {
       _levelIndex = levelIndex;
-      _score = 0;
+      _miss = 0; // 단계가 시작될 때마다 미스 초기화
       _spawnedCount = 0;
-      _timeLeft = config.durationSeconds;
+      _playTime = 0;
+      _timeLeft = kLevelDurationSeconds;
       _status = _GameStatus.playing;
       _balloons.clear();
     });
 
-    // 클리어 다이얼로그에서 stopBgm()으로 멈춘 상태라면 처음부터 재생된다.
-    // (실패 후 재시도처럼 음악이 계속 재생 중이면 그대로 이어진다.)
+    // 정지된 상태에서 시작하면 처음부터 재생된다.
     startBgm();
     startTimers();
   }
 
+  /// 매 프레임 호출: 풍선 이동 -> 미스 판정 -> 스폰 -> 남은 시간 갱신
+  void _onTick(Duration elapsed) {
+    if (_status != _GameStatus.playing) return;
+
+    // 프레임 간격(초). 앱이 잠깐 멈췄다 돌아왔을 때 풍선이 튀지 않도록 상한을 둔다.
+    final double dt =
+    ((elapsed - _lastTick).inMicroseconds / 1e6).clamp(0.0, 0.05).toDouble();
+    _lastTick = elapsed;
+    _playTime += dt;
+
+    // 1) 풍선 이동
+    for (final b in _balloons) {
+      b.y -= b.speed * _kSpeedScale * dt;
+    }
+
+    // 2) 터뜨리지 못하고 화면 위로 사라진 풍선 = 미스
+    final int before = _balloons.length;
+    _balloons.removeWhere((b) => b.y + b.size < 0);
+    final int missed = before - _balloons.length;
+
+    // 3) 제한 시간 안에 풍선이 고르게 나오도록 스폰
+    final double interval = kLevelDurationSeconds / _totalSpawnCount;
+    while (_spawnedCount < _totalSpawnCount &&
+        _playTime >= (_spawnedCount + 0.5) * interval) {
+      _spawnBalloon();
+    }
+
+    // 풍선 레이어만 다시 그린다 (화면 전체 setState 아님)
+    _frameNotifier.notify();
+
+    // 4) 미스가 바뀐 경우에만 화면 전체 갱신
+    if (missed > 0) {
+      setState(() {
+        _miss += missed;
+      });
+      if (_miss >= kMaxMiss) {
+        _failLevel();
+        return;
+      }
+    }
+
+    // 5) 남은 시간은 정수 초가 바뀔 때만 갱신
+    final int left = (kLevelDurationSeconds - _playTime)
+        .ceil()
+        .clamp(0, kLevelDurationSeconds)
+        .toInt();
+    if (left != _timeLeft) {
+      setState(() {
+        _timeLeft = left;
+      });
+    }
+
+    // 시간이 끝났다는 것은 미스가 kMaxMiss 미만이라는 뜻 -> 단계 클리어
+    if (_playTime >= kLevelDurationSeconds) {
+      _finishLevelCleared();
+    }
+  }
+
   /// 단계 클리어 처리: 타이머 정지 + 음악 정지 + 상태 전환.
-  /// 시간 종료 시점과 목표 달성 시점에서 공용으로 사용.
   void _finishLevelCleared() {
     cancelAllTimers();
     stopBgm(); // 다이얼로그에 머무는 동안 음악 정지
     setState(() {
+      _timeLeft = 0;
       _status = (_levelIndex == kLevels.length - 1)
           ? _GameStatus.allCleared
           : _GameStatus.levelCleared;
     });
   }
 
-  void _onTimeUp() {
-    if (_score >= _currentLevel.requiredBalloons) {
-      _finishLevelCleared();
-      return;
-    }
+  /// 풍선을 kMaxMiss개 놓쳐서 게임 종료
+  void _failLevel() {
     cancelAllTimers();
     stopBgm(); // 실패 다이얼로그에서도 음악 정지
     setState(() {
@@ -205,49 +251,32 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
     });
   }
 
+  /// 풍선 생성 (프레임 루프 안에서 호출되므로 setState를 쓰지 않는다)
   void _spawnBalloon() {
     if (_screenSize == Size.zero) return;
     final LevelConfig config = _currentLevel;
-    final double size =
-        config.minSize + _random.nextDouble() * (config.maxSize - config.minSize);
-    final double x = _random.nextDouble(); // 0.0~1.0
+    final double size = kBalloonMinSize +
+        _random.nextDouble() * (kBalloonMaxSize - kBalloonMinSize);
     final double speed = config.minSpeed +
         _random.nextDouble() * (config.maxSpeed - config.minSpeed);
-    setState(() {
-      _spawnedCount++;
-      _balloons.add(
-        Balloon(
-          id: _nextId++,
-          x: x,
-          y: _screenSize.height, // 화면 아래에서 시작
-          size: size,
-          color: balloonColors[_random.nextInt(balloonColors.length)],
-          speed: speed,
-        ),
-      );
-    });
-  }
 
-  void _updateBalloons() {
-    setState(() {
-      for (final b in _balloons) {
-        b.y -= b.speed * 0.03; // 위로 이동
-      }
-      _balloons.removeWhere((b) => b.y + b.size < 0);
-    });
+    _spawnedCount++;
+    _balloons.add(
+      Balloon(
+        id: _nextId++,
+        x: _random.nextDouble(), // 0.0~1.0
+        y: _screenSize.height, // 화면 아래에서 시작
+        size: size,
+        color: balloonColors[_random.nextInt(balloonColors.length)],
+        speed: speed,
+      ),
+    );
   }
 
   void _popBalloon(Balloon balloon) {
     if (_status != _GameStatus.playing || isPaused) return;
-    setState(() {
-      _balloons.removeWhere((b) => b.id == balloon.id);
-      _score++;
-    });
-
-    // 목표 개수를 다 터뜨렸다면 즉시 단계 클리어 처리
-    if (_score >= _currentLevel.requiredBalloons) {
-      _finishLevelCleared();
-    }
+    _balloons.removeWhere((b) => b.id == balloon.id);
+    _frameNotifier.notify(); // 풍선 레이어만 갱신
   }
 
   void _goToNextLevel() {
@@ -284,7 +313,19 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
             ),
             child: Stack(
               children: [
-                ..._balloons.map(_buildBalloon),
+                // 풍선 레이어: _frameNotifier가 알릴 때만 이 부분만 다시 빌드된다.
+                Positioned.fill(
+                  child: AnimatedBuilder(
+                    animation: _frameNotifier,
+                    builder: (context, _) {
+                      return Stack(
+                        children: [
+                          for (final b in _balloons) _buildBalloon(b),
+                        ],
+                      );
+                    },
+                  ),
+                ),
                 _buildTopBar(),
                 if (_status == _GameStatus.ready) _buildStartOverlay(),
                 if (isPaused) buildPausedOverlay(),
@@ -307,6 +348,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
     (_screenSize.width - b.size).clamp(0, double.infinity);
     final double left = b.x * maxLeft;
     return Positioned(
+      key: ValueKey(b.id),
       left: left,
       top: b.y,
       child: GestureDetector(
@@ -339,7 +381,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
               ],
             ),
 
-            // 오른쪽: 정보 칩 3개
+            // 오른쪽: 정보 칩 3개 (단계 / 미스 / 남은 시간)
             Row(
               children: [
                 InfoChip(
@@ -350,9 +392,9 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
                 ),
                 const SizedBox(width: 8),
                 InfoChip(
-                  icon: Icons.star,
-                  value: '$_score',
-                  unit: '/${config.requiredBalloons}',
+                  icon: Icons.heart_broken,
+                  value: '$_miss',
+                  unit: '/$kMaxMiss',
                   width: 95,
                 ),
                 const SizedBox(width: 8),
@@ -371,7 +413,6 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
   }
 
   Widget _buildStartOverlay() {
-    final LevelConfig first = kLevels.first;
     return Container(
       color: Colors.black.withValues(alpha: 0.4),
       child: Center(
@@ -383,8 +424,9 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
               const SizedBox(height: 12),
               Text(
                 '총 ${kLevels.length}단계!\n'
-                    '단계 ${first.level}: ${first.durationSeconds}초 안에 풍선 ${first.requiredBalloons}개를 터뜨리세요!\n'
-                    '단계가 올라갈수록 풍선이 더 빠르고 작아져요!',
+                    '단계마다 $kLevelDurationSeconds초 동안 풍선을 터뜨리세요!\n'
+                    '풍선을 $kMaxMiss개 놓치면 게임이 끝나요!\n'
+                    '단계가 올라갈수록 풍선이 더 빨라져요!',
                 style: const TextStyle(fontSize: 16, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
@@ -412,7 +454,8 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
     final LevelConfig cleared = kLevels[_levelIndex];
     return buildDialogCard(
       title: '단계 ${cleared.level} 클리어! 🎉',
-      message: '풍선 ${cleared.requiredBalloons}개를 모두 터뜨렸어요!\n'
+      message: '$kLevelDurationSeconds초를 잘 버텼어요!\n'
+          '놓친 풍선: $_miss개\n'
           '다음 단계에 도전할까요?',
       titleColor: Colors.green,
       onPrimaryAction: _goToNextLevel,
@@ -423,8 +466,8 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
 
   Widget _buildLevelFailedOverlay() {
     return buildDialogCard(
-      title: '시간 종료! ⏰',
-      message: '아쉬워요!\n같은 단계부터 다시 도전해 보세요!',
+      title: '게임 종료! 😢',
+      message: '풍선을 $kMaxMiss개 놓쳤어요!\n같은 단계부터 다시 도전해 보세요!',
       titleColor: Colors.redAccent,
       onPrimaryAction: _retryLevel,
       primaryLabel: '다시 시도',
@@ -435,7 +478,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> {
   Widget _buildAllClearedOverlay() {
     return buildDialogCard(
       title: '전체 클리어! 🏆',
-      message: '${kLevels.length}개 단계을 모두 완료했어요!\n정말 대단해요!',
+      message: '${kLevels.length}개 단계를 모두 완료했어요!\n정말 대단해요!',
       titleColor: Colors.deepOrange,
       onPrimaryAction: _restartFromBeginning,
       primaryLabel: '처음부터',
@@ -452,11 +495,14 @@ class _BalloonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size * 1.3,
-      child: CustomPaint(
-        painter: BalloonPainter(color: color),
+    // RepaintBoundary: 풍선이 움직일 때 위치만 옮기고 다시 그리지 않는다.
+    return RepaintBoundary(
+      child: SizedBox(
+        width: size,
+        height: size * 1.3,
+        child: CustomPaint(
+          painter: BalloonPainter(color: color),
+        ),
       ),
     );
   }

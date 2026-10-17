@@ -19,7 +19,7 @@ enum _GameStatus {
 }
 
 class _Game02ScreenState extends BaseGameState<Game02Screen> {
-  static const int gameDuration = 99; // 제한 시간(초)
+  static const int gameDuration = 60; // 제한 시간(초)
   static const int gridCount = 9; // 3x3
 
   static const List<Color> balloonColorPalette = [
