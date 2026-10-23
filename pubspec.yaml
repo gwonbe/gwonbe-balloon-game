@@ -25,6 +25,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/home_001.png # home image
     - assets/2026_012_0-82.mp3 # game bgm
     - assets/2026_003_0-80.mp3 # home bgm
 

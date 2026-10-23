@@ -1,6 +1,6 @@
-import 'package:balloon_game/game01.dart';
-import 'package:balloon_game/game02.dart';
-import 'package:balloon_game/game03.dart';
+import 'package:balloon_game/screens/game01_screen.dart';
+import 'package:balloon_game/screens/game02_screen.dart';
+import 'package:balloon_game/screens/game03_screen.dart';
 import 'package:balloon_game/utils/game_storage.dart';
 import 'package:flutter/material.dart';
 

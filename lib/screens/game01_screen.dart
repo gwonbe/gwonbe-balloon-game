@@ -17,7 +17,7 @@ class Game01Screen extends StatefulWidget {
 const int kLevelCount = 5;
 
 /// 모든 단계 공통 제한 시간(초)
-const int kLevelDurationSeconds = 30;
+const int kLevelDurationSeconds = 35;
 
 /// 이 횟수만큼 풍선을 놓치면 게임 종료
 const int kMaxMiss = 5;
@@ -305,44 +305,46 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          _screenSize = Size(constraints.maxWidth, constraints.maxHeight);
-          return Container(
-            width: constraints.maxWidth,
-            height: constraints.maxHeight,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF87CEEB), Color(0xFFE0F7FA)],
-              ),
-            ),
-            child: Stack(
-              children: [
-                // 풍선 레이어: _frameNotifier가 알릴 때만 이 부분만 다시 빌드된다.
-                Positioned.fill(
-                  child: AnimatedBuilder(
-                    animation: _frameNotifier,
-                    builder: (context, _) {
-                      return Stack(
-                        children: [
-                          for (final b in _balloons) _buildBalloon(b),
-                        ],
-                      );
-                    },
-                  ),
+    return withSystemBackPause(
+      Scaffold(
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            _screenSize = Size(constraints.maxWidth, constraints.maxHeight);
+            return Container(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF87CEEB), Color(0xFFE0F7FA)],
                 ),
-                _buildTopBar(),
-                if (_status == _GameStatus.ready) _buildStartOverlay(),
-                if (_status == _GameStatus.levelCleared) _buildLevelClearOverlay(),
-                if (_status == _GameStatus.levelFailed) _buildLevelFailedOverlay(),
-                if (_status == _GameStatus.allCleared) _buildAllClearedOverlay(),
-              ],
-            ),
-          );
-        },
+              ),
+              child: Stack(
+                children: [
+                  // 풍선 레이어: _frameNotifier가 알릴 때만 이 부분만 다시 빌드된다.
+                  Positioned.fill(
+                    child: AnimatedBuilder(
+                      animation: _frameNotifier,
+                      builder: (context, _) {
+                        return Stack(
+                          children: [
+                            for (final b in _balloons) _buildBalloon(b),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  _buildTopBar(),
+                  if (_status == _GameStatus.ready) _buildStartOverlay(),
+                  if (_status == _GameStatus.levelCleared) _buildLevelClearOverlay(),
+                  if (_status == _GameStatus.levelFailed) _buildLevelFailedOverlay(),
+                  if (_status == _GameStatus.allCleared) _buildAllClearedOverlay(),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

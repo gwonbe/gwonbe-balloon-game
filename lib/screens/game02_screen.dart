@@ -249,7 +249,8 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
     // 일시정지 중에는 문제/보기를 가려서 시간이 멈춘 채 답을 찾지 못하게 한다.
     final bool showBoard = _status == _GameStatus.playing && !isPaused;
 
-    return Scaffold(
+    return withSystemBackPause(
+      Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -283,6 +284,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
           ],
         ),
       ),
+    ),
     );
   }
 

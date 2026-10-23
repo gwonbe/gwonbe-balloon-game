@@ -234,6 +234,23 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     return circleButton(Icons.pause, showPauseDialog);
   }
 
+
+  /// 게임 진행 중에는 시스템 뒤로가기를 일시정지로 처리한다.
+  /// 게임이 종료되면 PopScope가 화면 이동을 허용한다.
+  Widget withSystemBackPause(Widget child) {
+    return PopScope<Object?>(
+      canPop: !isPlaying,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        // 이미 화면 이동이 완료됐거나 게임이 종료된 경우 무시
+        if (didPop || !isPlaying) return;
+
+        // 게임 진행 중일 때만 일시정지 창 표시
+        showPauseDialog();
+      },
+      child: child,
+    );
+  }
+
   /// [showQuitButton]이 false면 '게임 중단' 버튼 없이 확인 버튼 하나만 보여준다.
   Widget buildDialogCard({
     required String title,

@@ -249,40 +249,42 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   Widget build(BuildContext context) {
     final bool showBoard = _status == _GameStatus.playing && !isPaused;
 
-    return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Container(
-            width: constraints.maxWidth,
-            height: constraints.maxHeight,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF87CEEB), Color(0xFFE0F7FA)],
+    return withSystemBackPause(
+      Scaffold(
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return Container(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF87CEEB), Color(0xFFE0F7FA)],
+                ),
               ),
-            ),
-            child: Stack(
-              children: [
-                if (showBoard)
-                  Positioned.fill(
-                    child: SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 140),
-                        child: Center(
-                          child: _buildGrid(constraints),
+              child: Stack(
+                children: [
+                  if (showBoard)
+                    Positioned.fill(
+                      child: SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 140),
+                          child: Center(
+                            child: _buildGrid(constraints),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                _buildTopBar(showBoard),
-                if (_feedbackText != null) _buildFeedbackOverlay(),
-                if (_status == _GameStatus.ready) _buildStartOverlay(),
-                if (_status == _GameStatus.gameOver) _buildGameOverOverlay(),
-              ],
-            ),
-          );
-        },
+                  _buildTopBar(showBoard),
+                  if (_feedbackText != null) _buildFeedbackOverlay(),
+                  if (_status == _GameStatus.ready) _buildStartOverlay(),
+                  if (_status == _GameStatus.gameOver) _buildGameOverOverlay(),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
