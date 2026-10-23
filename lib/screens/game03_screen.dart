@@ -39,6 +39,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
   Timer? _gameTimer; // 1초마다 남은 시간 감소
   Timer? _feedbackTimer; // 정답/오답 메시지 자동으로 사라지게
+  Timer? _nextRoundTimer; // 다음 문제로 넘어가기 전 짧은 대기
 
   _GameStatus _status = _GameStatus.ready;
   int _score = 0;
@@ -86,6 +87,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   void cancelAllTimers() {
     _gameTimer?.cancel();
     _feedbackTimer?.cancel();
+    _nextRoundTimer?.cancel();
   }
 
   @override
@@ -110,65 +112,117 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
   // ───────── 게임 로직 ─────────
 
+
   void _generateQuestion() {
     final List<String> ops = ['+', '-', '*', '/'];
     final String op = ops[_random.nextInt(ops.length)];
-    int a, b, answer;
+
+    // 정답은 항상 2~11
+    final int answer = 2 + _random.nextInt(10);
+
+    late int a;
+    late int b;
 
     switch (op) {
+      case '+':
+      // a + b = answer
+        a = 1 + _random.nextInt(answer - 1);
+        b = answer - a;
+        break;
+
       case '-':
-        b = 1 + _random.nextInt(24);
-        a = b + 1 + _random.nextInt(25 - b);
-        answer = a - b;
+      // a - b = answer, 두 숫자는 25 이하
+        b = 1 + _random.nextInt(25 - answer);
+        a = answer + b;
         break;
+
       case '*':
-        a = 1 + _random.nextInt(5);
-        final int maxB = 25 ~/ a;
-        b = 1 + _random.nextInt(maxB);
-        answer = a * b;
+      // a * b = answer
+        final List<int> factors = [];
+        for (int i = 1; i <= answer; i++) {
+          if (answer % i == 0) {
+            factors.add(i);
+          }
+        }
+        a = factors[_random.nextInt(factors.length)];
+        b = answer ~/ a;
         break;
+
       case '/':
-        answer = 1 + _random.nextInt(25);
+      // a / b = answer, 나머지 없이 나누어떨어짐
         b = 1 + _random.nextInt(25 ~/ answer);
         a = answer * b;
         break;
-      case '+':
+
       default:
-        a = 1 + _random.nextInt(24);
-        b = 1 + _random.nextInt(25 - a);
-        answer = a + b;
-        break;
+        a = 1;
+        b = 1;
     }
 
     _operand1 = a;
     _operand2 = b;
     _operator = op;
     _answer = answer;
-    _targetColor = balloonColorPalette[_random.nextInt(balloonColorPalette.length)];
+
+    _targetColor =
+    balloonColorPalette[_random.nextInt(balloonColorPalette.length)];
+
     _poppedTargetCount = 0;
   }
 
   /// 정답 개수만큼 목표 색 풍선을 배치하고, 나머지는 다른 색상들로 랜덤하게 채운다.
+
   void _generateGrid() {
-    final int requiredTargetCount = _answer.clamp(1, gridCount);
+    // 정답 색상 풍선은 정답 개수보다 0~5개 더 생성
+    final int extraCount = _random.nextInt(6);
+    final int targetCount = _answer + extraCount;
+
+    // 정답에 따라 사용할 전체 색상 종류 수 결정
+    final int colorCount;
+    if (_answer >= 10) {
+      colorCount = 2;
+    } else if (_answer >= 7) {
+      colorCount = 3;
+    } else if (_answer >= 4) {
+      colorCount = 4;
+    } else {
+      colorCount = 5;
+    }
+
+    // 목표 색상 외에 사용할 색상 선택
     final List<Color> otherColors = balloonColorPalette
         .where((color) => color != _targetColor)
-        .toList();
+        .toList()
+      ..shuffle(_random);
+
+    // 목표 색상을 포함해 지정된 종류만큼 색상 구성
+    final List<Color> selectedColors = [
+      _targetColor,
+      ...otherColors.take(colorCount - 1),
+    ];
 
     final List<Color> colors = [];
-    // 정답 개수만큼 목표 색상 추가
-    for (int i = 0; i < requiredTargetCount; i++) {
+
+    // 목표 색상 풍선
+    for (int i = 0; i < targetCount; i++) {
       colors.add(_targetColor);
     }
-    // 남은 칸은 다른 색상들로 무작위 채우기
-    while (colors.length < gridCount) {
-      colors.add(otherColors[_random.nextInt(otherColors.length)]);
+
+    // 나머지 풍선은 선택된 색상들로 최대한 균등하게 배치
+    final List<Color> nonTargetColors =
+    selectedColors.where((color) => color != _targetColor).toList();
+
+    final int remainingCount = gridCount - targetCount;
+
+    for (int i = 0; i < remainingCount; i++) {
+      colors.add(nonTargetColors[i % nonTargetColors.length]);
     }
+
+    // 풍선 위치 무작위 배치
     colors.shuffle(_random);
 
     setState(() {
       _gridColors = List<Color>.from(colors);
-      // 풍선판을 완전히 새롭게 초기화 (모든 풍선 활성화, 터트린 카운트 초기화)
       _gridActive = List<bool>.filled(gridCount, true);
       _poppedTargetCount = 0;
     });
@@ -221,12 +275,20 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
   void _onTapCell(int index) {
     if (_status != _GameStatus.playing || isPaused) return;
-    if (_feedbackText != null || !_gridActive[index]) return;
+    if (_feedbackText != null ||
+        _nextRoundTimer?.isActive == true ||
+        !_gridActive[index]) {
+      return;
+    }
 
     final bool isTargetColor = _gridColors[index] == _targetColor;
+
     setState(() {
-      _gridActive[index] = false; // 터뜨린 풍선은 즉시 제거
-      if (isTargetColor) _poppedTargetCount++;
+      _gridActive[index] = false;
+
+      if (isTargetColor) {
+        _poppedTargetCount++;
+      }
     });
 
     if (!isTargetColor) {
@@ -238,8 +300,29 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
       setState(() {
         _score++;
       });
+
+      // 정답 메시지를 표시한다.
       _showFeedback(true);
-      _startNextRound();
+
+      // 메시지와 정답 카운트를 잠깐 보여준 뒤 다음 문제로 이동한다.
+      _nextRoundTimer?.cancel();
+      _nextRoundTimer = Timer(
+        const Duration(milliseconds: 300),
+            () {
+          if (!mounted ||
+              _status != _GameStatus.playing ||
+              isPaused) {
+            return;
+          }
+
+          _feedbackTimer?.cancel();
+          setState(() {
+            _feedbackText = null;
+          });
+
+          _startNextRound();
+        },
+      );
     }
   }
 
@@ -392,9 +475,15 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     );
   }
 
+
   Widget _buildQuestionBoard() {
+    const double balloonSize = 44;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(24),
@@ -403,21 +492,33 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _LabeledBalloonWidget(
-            size: 56,
+            size: balloonSize,
             color: _targetColor,
             label: '$_operand1',
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 3),
           _LabeledBalloonWidget(
-            size: 56,
+            size: balloonSize,
             color: _targetColor,
             label: _operatorSymbol,
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 3),
           _LabeledBalloonWidget(
-            size: 56,
+            size: balloonSize,
             color: _targetColor,
             label: '$_operand2',
+          ),
+          SizedBox(width: 3),
+          _LabeledBalloonWidget(
+            size: balloonSize,
+            color: _targetColor,
+            label: '=',
+          ),
+          SizedBox(width: 3),
+          _LabeledBalloonWidget(
+            size: balloonSize,
+            color: _targetColor,
+            label: '$_poppedTargetCount',
           ),
         ],
       ),
