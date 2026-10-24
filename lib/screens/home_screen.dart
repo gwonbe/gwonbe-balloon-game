@@ -1,5 +1,6 @@
-import 'package:balloon_game/game_list_screen.dart';
+import 'package:balloon_game/screens/game_list_screen.dart';
 import 'package:balloon_game/utils/app_bgm.dart';
+import 'package:balloon_game/widgets/app_version_text.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -87,6 +88,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         ],
                       ),
                     ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 16,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: AppVersionText(
+                    color: Colors.white,
+                    shadows: const [
+                      Shadow(
+                        offset: Offset(0, 2),
+                        blurRadius: 4.0,
+                        color: Color(0x80000000),
+                      ),
+                    ],
                   ),
                 ),
               ),

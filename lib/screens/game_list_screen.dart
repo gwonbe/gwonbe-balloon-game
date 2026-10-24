@@ -2,6 +2,7 @@ import 'package:balloon_game/screens/game01_screen.dart';
 import 'package:balloon_game/screens/game02_screen.dart';
 import 'package:balloon_game/screens/game03_screen.dart';
 import 'package:balloon_game/utils/game_storage.dart';
+import 'package:balloon_game/widgets/app_version_text.dart';
 import 'package:flutter/material.dart';
 
 class GameItem {
@@ -92,26 +93,32 @@ class _GameListScreenState extends State<GameListScreen> {
       appBar: AppBar(
         title: const Text('게임 목록'),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: _games.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final game = _games[index];
-          final int best = _bestScores[game.bestScoreKey] ?? 0;
-          final String bestText =
-          best > 0 ? game.bestScoreLabel(best) : '기록 없음';
-
-          return _GameCard(
-            game: game,
-            bestText: bestText,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: game.builder),
+      body: Stack(
+        children: [
+          ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
+            itemCount: _games.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final game = _games[index];
+              final int best = _bestScores[game.bestScoreKey] ?? 0;
+              final String bestText = best > 0 ? game.bestScoreLabel(best) : '기록 없음';
+              return _GameCard(
+                game: game,
+                bestText: bestText,
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: game.builder));
+                },
               );
             },
-          );
-        },
+          ),
+          Positioned(
+            bottom: 12,
+            left: 0,
+            right: 0,
+            child: Center(child: AppVersionText(color: Colors.black)),
+          ),
+        ],
       ),
     );
   }
