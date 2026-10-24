@@ -32,18 +32,6 @@ const Duration _kFeedbackDuration = Duration(milliseconds: 700);
 /// 풍선이 터지는 애니메이션 시간
 const Duration _kPopDuration = Duration(milliseconds: 180);
 
-const List<Color> _kBalloonPalette = [
-  Colors.red,
-  Colors.pink,
-  Colors.orange,
-  Colors.amber,
-  Colors.green,
-  Colors.teal,
-  Colors.blue,
-  Colors.indigo,
-  Colors.purple,
-];
-
 /// 구구단에 나올 수 있는 모든 곱셈 결과 (오답 후보 풀)
 final List<int> _kAllProducts = {
   for (int i = 1; i <= 9; i++)
@@ -169,7 +157,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
     _question = _Question.random(_random);
 
     final List<int> values = _question.buildChoices(_random);
-    final List<Color> colors = List<Color>.from(_kBalloonPalette)
+    final List<Color> colors = List<Color>.from(balloonColors)
       ..shuffle(_random);
 
     _cells = List.generate(
@@ -387,31 +375,18 @@ class _QuestionBoard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _LabeledBalloon(
-            size: 56,
-            color: Colors.blueAccent,
-            label: '${question.dan}',
-          ),
+          _LabeledBalloon(size: 56, color: Colors.blueAccent, label: '${question.dan}'),
           const SizedBox(width: 10),
-          const _LabeledBalloon(
-            size: 56,
-            color: Colors.redAccent,
-            label: '×',
-          ),
+          const _LabeledBalloon(size: 56, color: Colors.redAccent, label: '×'),
           const SizedBox(width: 10),
-          _LabeledBalloon(
-            size: 56,
-            color: Colors.blueAccent,
-            label: '${question.multiplier}',
-          ),
+          _LabeledBalloon(size: 56, color: Colors.blueAccent, label: '${question.multiplier}'),
         ],
       ),
     );
   }
 }
 
-/// 터지면(커지면서 투명해짐) 탭이 막히는 그리드 풍선.
-/// 자리는 그대로 유지되므로 나머지 풍선의 위치가 밀리지 않는다.
+/// 터지면(커지면서 투명해짐) 탭이 막히는 그리드 풍선
 class _PoppableBalloon extends StatelessWidget {
   final double size;
   final _Cell cell;
@@ -436,11 +411,7 @@ class _PoppableBalloon extends StatelessWidget {
           child: AnimatedOpacity(
             opacity: popped ? 0.0 : 1.0,
             duration: _kPopDuration,
-            child: _LabeledBalloon(
-              size: size,
-              color: cell.color,
-              label: '${cell.value}',
-            ),
+            child: _LabeledBalloon(size: size, color: cell.color, label: '${cell.value}'),
           ),
         ),
       ),
@@ -473,11 +444,7 @@ class _FeedbackOverlay extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: const TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
     );
@@ -501,8 +468,7 @@ class _StartOverlay extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                '구구단의 정답을 찾아 터뜨리세요!\n'
-                    '$kGame02Duration초 동안 최대한 많이 맞혀보세요!',
+                '구구단의 정답을 찾아 터뜨리세요!\n$kGame02Duration초 동안 최대한 많이 맞혀보세요!',
                 style: TextStyle(fontSize: 16, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
@@ -559,11 +525,7 @@ class _LabeledBalloon extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 shadows: const [
-                  Shadow(
-                    color: Colors.black38,
-                    blurRadius: 3,
-                    offset: Offset(0, 1),
-                  ),
+                  Shadow(color: Colors.black38, blurRadius: 3, offset: Offset(0, 1)),
                 ],
               ),
             ),

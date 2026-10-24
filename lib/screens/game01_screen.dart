@@ -30,6 +30,9 @@ const double kBalloonMaxSize = 75;
 /// 실제 이동 속도(px/sec) = speed * 이 값
 const double _kSpeedScale = 1.875;
 
+// 실제 풍선보다 터치 영역을 사방으로 20px씩 확장
+const double touchPadding = 20;
+
 /// 단계별 설정: 풍선 속도 범위, 제한 시간 동안 나오는 풍선 수
 class LevelConfig {
   final int level;
@@ -87,18 +90,7 @@ class _FrameNotifier extends ChangeNotifier {
   void notify() => notifyListeners();
 }
 
-class _Game01ScreenState extends BaseGameState<Game01Screen>
-    with SingleTickerProviderStateMixin {
-  static const List<Color> balloonColors = [
-    Colors.red,
-    Colors.pink,
-    Colors.orange,
-    Colors.amber,
-    Colors.green,
-    Colors.blue,
-    Colors.purple,
-  ];
-
+class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerProviderStateMixin {
   final Random _random = Random();
   final List<Balloon> _balloons = [];
   final _FrameNotifier _frameNotifier = _FrameNotifier();
@@ -353,13 +345,21 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
     final double maxLeft =
     (_screenSize.width - b.size).clamp(0, double.infinity);
     final double left = b.x * maxLeft;
+
     return Positioned(
       key: ValueKey(b.id),
-      left: left,
-      top: b.y,
+      left: left - touchPadding,
+      top: b.y - touchPadding,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onTap: () => _popBalloon(b),
-        child: _BalloonWidget(size: b.size, color: b.color),
+        child: Padding(
+          padding: const EdgeInsets.all(touchPadding),
+          child: _BalloonWidget(
+            size: b.size,
+            color: b.color,
+          ),
+        ),
       ),
     );
   }

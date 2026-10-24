@@ -22,19 +22,6 @@ enum _GameStatus {
 class _Game03ScreenState extends BaseGameState<Game03Screen> {
   static const int gameDuration = 60; // 제한 시간(초)
   static const int gridCount = 25; // 5x5
-
-  static const List<Color> balloonColorPalette = [
-    Colors.red,
-    Colors.pink,
-    Colors.orange,
-    Colors.amber,
-    Colors.green,
-    Colors.teal,
-    Colors.blue,
-    Colors.indigo,
-    Colors.purple,
-  ];
-
   final Random _random = Random();
 
   Timer? _gameTimer; // 1초마다 남은 시간 감소
@@ -164,8 +151,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     _operator = op;
     _answer = answer;
 
-    _targetColor =
-    balloonColorPalette[_random.nextInt(balloonColorPalette.length)];
+    _targetColor = balloonColors[_random.nextInt(balloonColors.length)];
 
     _poppedTargetCount = 0;
   }
@@ -190,10 +176,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     }
 
     // 목표 색상 외에 사용할 색상 선택
-    final List<Color> otherColors = balloonColorPalette
-        .where((color) => color != _targetColor)
-        .toList()
-      ..shuffle(_random);
+    final List<Color> otherColors = balloonColors.where((color) => color != _targetColor).toList()..shuffle(_random);
 
     // 목표 색상을 포함해 지정된 종류만큼 색상 구성
     final List<Color> selectedColors = [
@@ -275,9 +258,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
   void _onTapCell(int index) {
     if (_status != _GameStatus.playing || isPaused) return;
-    if (_feedbackText != null ||
-        _nextRoundTimer?.isActive == true ||
-        !_gridActive[index]) {
+    if (_feedbackText != null || _nextRoundTimer?.isActive == true || !_gridActive[index]) {
       return;
     }
 
@@ -308,10 +289,8 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
       _nextRoundTimer?.cancel();
       _nextRoundTimer = Timer(
         const Duration(milliseconds: 300),
-            () {
-          if (!mounted ||
-              _status != _GameStatus.playing ||
-              isPaused) {
+        () {
+          if (!mounted || _status != _GameStatus.playing || isPaused) {
             return;
           }
 
@@ -353,9 +332,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
                       child: SafeArea(
                         child: Padding(
                           padding: const EdgeInsets.only(top: 140),
-                          child: Center(
-                            child: _buildGrid(constraints),
-                          ),
+                          child: Center(child: _buildGrid(constraints)),
                         ),
                       ),
                     ),
@@ -388,15 +365,8 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
             width: cellSize,
             height: cellSize * 1.3,
             child: _gridActive[index]
-                ? GestureDetector(
-              onTap: () => _onTapCell(index),
-              child: _LabeledBalloonWidget(
-                size: cellSize,
-                color: _gridColors[index],
-                label: '',
-              ),
-            )
-                : const SizedBox.shrink(),
+              ? GestureDetector(onTap: () => _onTapCell(index), child: _LabeledBalloonWidget(size: cellSize, color: _gridColors[index], label: ''))
+              : const SizedBox.shrink(),
           );
         }),
       ),
@@ -411,8 +381,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           decoration: BoxDecoration(
-            color: (_feedbackCorrect ? Colors.green : Colors.red)
-                .withValues(alpha: 0.9),
+            color: (_feedbackCorrect ? Colors.green : Colors.red).withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -475,15 +444,11 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     );
   }
 
-
   Widget _buildQuestionBoard() {
     const double balloonSize = 44;
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(24),
@@ -491,35 +456,15 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _LabeledBalloonWidget(
-            size: balloonSize,
-            color: _targetColor,
-            label: '$_operand1',
-          ),
+          _LabeledBalloonWidget(size: balloonSize, color: _targetColor, label: '$_operand1'),
           SizedBox(width: 3),
-          _LabeledBalloonWidget(
-            size: balloonSize,
-            color: _targetColor,
-            label: _operatorSymbol,
-          ),
+          _LabeledBalloonWidget(size: balloonSize, color: _targetColor, label: _operatorSymbol),
           SizedBox(width: 3),
-          _LabeledBalloonWidget(
-            size: balloonSize,
-            color: _targetColor,
-            label: '$_operand2',
-          ),
+          _LabeledBalloonWidget(size: balloonSize, color: _targetColor, label: '$_operand2'),
           SizedBox(width: 3),
-          _LabeledBalloonWidget(
-            size: balloonSize,
-            color: _targetColor,
-            label: '=',
-          ),
+          _LabeledBalloonWidget(size: balloonSize, color: _targetColor, label: '='),
           SizedBox(width: 3),
-          _LabeledBalloonWidget(
-            size: balloonSize,
-            color: _targetColor,
-            label: '$_poppedTargetCount',
-          ),
+          _LabeledBalloonWidget(size: balloonSize, color: _targetColor, label: '$_poppedTargetCount'),
         ],
       ),
     );
@@ -602,11 +547,7 @@ class _LabeledBalloonWidget extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 shadows: const [
-                  Shadow(
-                    color: Colors.black38,
-                    blurRadius: 3,
-                    offset: Offset(0, 1),
-                  ),
+                  Shadow(color: Colors.black38, blurRadius: 3, offset: Offset(0, 1)),
                 ],
               ),
             ),

@@ -17,6 +17,16 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   /// dispose 이후에도 안전하게 광고창을 띄우기 위해 Navigator를 미리 잡아둔다.
   NavigatorState? _navigator;
 
+  final List<Color> balloonColors = [
+    Colors.red,
+    Colors.pink,
+    Colors.orange,
+    Colors.amber,
+    Colors.green,
+    Colors.blue,
+    Colors.purple,
+  ];
+
   /// 일시정지 중인지 여부 (일시정지 확인창이 떠 있는 동안 true)
   bool get isPaused => _isPaused;
 
@@ -61,7 +71,6 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
 
     final int count = await GameStorage.getAdCount();
     if (!navigator.mounted) return;
-
     if (count < kAdThreshold) return;
 
     await GameStorage.setAdCount(0);
