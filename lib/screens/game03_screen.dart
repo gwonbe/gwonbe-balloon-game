@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/utils/base_game_state.dart';
 import 'package:balloon_game/utils/game_storage.dart';
 import 'package:balloon_game/widgets/balloon_painter.dart';
@@ -20,6 +21,7 @@ enum _GameStatus {
 }
 
 class _Game03ScreenState extends BaseGameState<Game03Screen> {
+  late AppLocalizations l10n;
   static const int gameDuration = 60; // 제한 시간(초)
   static const int gridCount = 25; // 5x5
   final Random _random = Random();
@@ -244,10 +246,14 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
   void _showFeedback(bool correct) {
     _feedbackTimer?.cancel();
+
     setState(() {
       _feedbackCorrect = correct;
-      _feedbackText = correct ? '딩동댕!' : '땡!';
+      _feedbackText = correct
+          ? l10n.game03ScreenCorrectFeedback
+          : l10n.game03ScreenIncorrectFeedback;
     });
+
     _feedbackTimer = Timer(const Duration(milliseconds: 700), () {
       if (!mounted) return;
       setState(() {
@@ -309,6 +315,8 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
   @override
   Widget build(BuildContext context) {
+    l10n = AppLocalizations.of(context)!;
+
     final bool showBoard = _status == _GameStatus.playing && !isPaused;
 
     return withSystemBackPause(
@@ -420,14 +428,14 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
                     InfoChip(
                       icon: Icons.star,
                       value: '$_score',
-                      unit: '점',
+                      unit: l10n.game03ScreenScoreUnit,
                       width: 95,
                     ),
                     const SizedBox(width: 8),
                     InfoChip(
                       icon: Icons.timer,
                       value: '$_timeLeft',
-                      unit: '초',
+                      unit: l10n.game03ScreenSecondUnit,
                       width: 90,
                     ),
                   ],
@@ -479,21 +487,30 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                '계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!\n60초 동안 도전하세요!',
-                style: TextStyle(fontSize: 16, color: Colors.white),
+              Text(
+                l10n.game03ScreenStartMessage(gameDuration),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _startGame,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 14,
+                  ),
                   backgroundColor: Colors.orange,
                 ),
-                child: const Text(
-                  '게임 시작',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                child: Text(
+                  l10n.game03ScreenStartButton,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -505,11 +522,11 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
   Widget _buildGameOverOverlay() {
     return buildDialogCard(
-      title: '시간 종료! ⏰',
-      message: '최종 점수 : $_score',
+      title: l10n.game03ScreenGameOverTitle,
+      message: l10n.game03ScreenGameOverMessage(_score),
       titleColor: Colors.black87,
       onPrimaryAction: () => Navigator.of(context).maybePop(),
-      primaryLabel: '확인',
+      primaryLabel: l10n.game03ScreenConfirmButton,
       primaryColor: Colors.blue,
       showQuitButton: false,
     );

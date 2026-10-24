@@ -1,3 +1,4 @@
+import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/screens/game_list_screen.dart';
 import 'package:balloon_game/utils/app_bgm.dart';
 import 'package:balloon_game/widgets/app_version_text.dart';
@@ -43,6 +44,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -73,9 +76,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   // FadeTransition으로 감싸 깜빡이는 효과 적용
                   child: FadeTransition(
                     opacity: _fadeAnimation,
-                    child: const Text(
-                      '터치하세요!',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.homeScreenTapToStart,
+                      style: const TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,

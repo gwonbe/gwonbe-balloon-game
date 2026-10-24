@@ -1,3 +1,4 @@
+import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/screens/game01_screen.dart';
 import 'package:balloon_game/screens/game02_screen.dart';
 import 'package:balloon_game/screens/game03_screen.dart';
@@ -11,7 +12,7 @@ class GameItem {
   final IconData icon;
   final WidgetBuilder builder;
   final String bestScoreKey;
-  final String Function(int score) bestScoreLabel;
+  final int gameNumber;
 
   const GameItem({
     required this.title,
@@ -19,7 +20,7 @@ class GameItem {
     required this.icon,
     required this.builder,
     required this.bestScoreKey,
-    required this.bestScoreLabel,
+    required this.gameNumber,
   });
 }
 
@@ -31,32 +32,7 @@ class GameListScreen extends StatefulWidget {
 }
 
 class _GameListScreenState extends State<GameListScreen> {
-  static final List<GameItem> _games = [
-    GameItem(
-      title: '둥실둥실',
-      description: '풍선이 하늘로 올라가기 전에 터뜨리세요!',
-      icon: Icons.bubble_chart,
-      builder: (context) => const Game01Screen(),
-      bestScoreKey: GameStorage.bestScoreGame01,
-      bestScoreLabel: (score) => '$score / $kLevelCount 단계 클리어',
-    ),
-    GameItem(
-      title: '구구단을 외자',
-      description: '구구단 정답 풍선을 터뜨리세요!\n',
-      icon: Icons.close,
-      builder: (context) => const Game02Screen(),
-      bestScoreKey: GameStorage.bestScoreGame02,
-      bestScoreLabel: (score) => '$score개 정답',
-    ),
-    GameItem(
-      title: '사칙연산',
-      description: '사칙연산 정답 풍선을 터뜨리세요!\n',
-      icon: Icons.calculate,
-      builder: (context) => const Game03Screen(),
-      bestScoreKey: GameStorage.bestScoreGame03,
-      bestScoreLabel: (score) => '$score개 정답',
-    ),
-  ];
+  late List<GameItem> _games;
 
   /// 게임별 최고 기록 (key: SharedPreferences 키)
   final Map<String, int> _bestScores = {};
@@ -89,9 +65,38 @@ class _GameListScreenState extends State<GameListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    _games = [
+      GameItem(
+        title: l10n.game01Title,
+        description: l10n.game01Description,
+        icon: Icons.bubble_chart,
+        builder: (context) => const Game01Screen(),
+        bestScoreKey: GameStorage.bestScoreGame01,
+        gameNumber: 1,
+      ),
+      GameItem(
+        title: l10n.game02Title,
+        description: l10n.game02Description,
+        icon: Icons.close,
+        builder: (context) => const Game02Screen(),
+        bestScoreKey: GameStorage.bestScoreGame02,
+        gameNumber: 2,
+      ),
+      GameItem(
+        title: l10n.game03Title,
+        description: l10n.game03Description,
+        icon: Icons.calculate,
+        builder: (context) => const Game03Screen(),
+        bestScoreKey: GameStorage.bestScoreGame03,
+        gameNumber: 3,
+      ),
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('게임 목록'),
+        title: Text(l10n.gameListScreenTitle),
       ),
       body: Stack(
         children: [
@@ -102,12 +107,50 @@ class _GameListScreenState extends State<GameListScreen> {
             itemBuilder: (context, index) {
               final game = _games[index];
               final int best = _bestScores[game.bestScoreKey] ?? 0;
-              final String bestText = best > 0 ? game.bestScoreLabel(best) : '기록 없음';
+
+              final String title;
+              final String description;
+
+              switch (game.gameNumber) {
+                case 1:
+                  title = l10n.game01Title;
+                  description = l10n.game01Description;
+                  break;
+                case 2:
+                  title = l10n.game02Title;
+                  description = l10n.game02Description;
+                  break;
+                default:
+                  title = l10n.game03Title;
+                  description = l10n.game03Description;
+              }
+
+              final String bestText;
+
+              if (best == 0) {
+                bestText = l10n.gameListScreenNoRecord;
+              } else {
+                switch (game.gameNumber) {
+                  case 1:
+                    bestText = l10n.game01BestScore(best, 0);
+                    break;
+                  case 2:
+                    bestText = l10n.game02BestScore(best);
+                    break;
+                  default:
+                    bestText = l10n.game03BestScore(best);
+                }
+              }
+
               return _GameCard(
                 game: game,
+                title: title,
+                description: description,
                 bestText: bestText,
                 onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: game.builder));
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: game.builder),
+                  );
                 },
               );
             },
@@ -129,11 +172,15 @@ class _GameCard extends StatelessWidget {
   static const double height = 96;
 
   final GameItem game;
+  final String title;
+  final String description;
   final String bestText;
   final VoidCallback onTap;
 
   const _GameCard({
     required this.game,
+    required this.title,
+    required this.description,
     required this.bestText,
     required this.onTap,
   });
@@ -192,13 +239,9 @@ class _GameCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              '최고 기록 : $bestText',
+                              bestText,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
                             ),
                           ),
                         ],

@@ -17,6 +17,9 @@ dependencies:
   audioplayers: ^6.7.1
   shared_preferences: ^2.5.6
   package_info_plus: ^10.2.2
+  intl: ^0.20.2
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -24,6 +27,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - assets/home_001.png # home image

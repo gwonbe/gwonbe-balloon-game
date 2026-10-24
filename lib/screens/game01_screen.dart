@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/utils/base_game_state.dart';
 import 'package:balloon_game/utils/game_storage.dart';
 import 'package:balloon_game/widgets/balloon_painter.dart';
@@ -91,6 +92,7 @@ class _FrameNotifier extends ChangeNotifier {
 }
 
 class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerProviderStateMixin {
+  late AppLocalizations l10n;
   final Random _random = Random();
   final List<Balloon> _balloons = [];
   final _FrameNotifier _frameNotifier = _FrameNotifier();
@@ -297,6 +299,8 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    l10n = AppLocalizations.of(context)!;
+
     return withSystemBackPause(
       Scaffold(
         body: LayoutBuilder(
@@ -395,7 +399,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
                 InfoChip(
                   icon: Icons.timer,
                   value: '$_timeLeft',
-                  unit: '초',
+                  unit: l10n.game01ScreenSecondUnit,
                   width: 90,
                 ),
               ],
@@ -417,11 +421,15 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
             children: [
               const SizedBox(height: 12),
               Text(
-                '총 ${kLevels.length}단계\n'
-                    '단계마다 $kLevelDurationSeconds초 동안 풍선을 터뜨리세요!\n'
-                    '풍선을 $kMaxMiss개 놓치면 게임이 끝나요!\n'
-                    '단계가 올라갈수록 풍선이 더 빨라져요!',
-                style: const TextStyle(fontSize: 16, color: Colors.white),
+                l10n.game01ScreenStartMessage(
+                  kLevels.length,
+                  kLevelDurationSeconds,
+                  kMaxMiss,
+                ),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -432,9 +440,12 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
                   const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                   backgroundColor: Colors.orange,
                 ),
-                child: const Text(
-                  '게임 시작',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                child: Text(
+                  l10n.game01ScreenStartButton,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -446,36 +457,38 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
 
   Widget _buildLevelClearOverlay() {
     final LevelConfig cleared = kLevels[_levelIndex];
+
     return buildDialogCard(
-      title: '단계 ${cleared.level} 클리어! 🎉',
-      message: '$kLevelDurationSeconds초를 잘 버텼어요!\n'
-          '놓친 풍선: $_miss개\n'
-          '다음 단계에 도전할까요?',
+      title: l10n.game01ScreenLevelClearedTitle(cleared.level),
+      message: l10n.game01ScreenLevelClearedMessage(
+        kLevelDurationSeconds,
+        _miss,
+      ),
       titleColor: Colors.green,
       onPrimaryAction: _goToNextLevel,
-      primaryLabel: '다음 단계',
+      primaryLabel: l10n.game01ScreenNextLevelButton,
       primaryColor: Colors.blue,
     );
   }
 
   Widget _buildLevelFailedOverlay() {
     return buildDialogCard(
-      title: '게임 종료! 😢',
-      message: '풍선을 $kMaxMiss개 놓쳤어요!\n같은 단계부터 다시 도전해 보세요!',
+      title: l10n.game01ScreenGameOverTitle,
+      message: l10n.game01ScreenGameOverMessage(kMaxMiss),
       titleColor: Colors.redAccent,
       onPrimaryAction: _retryLevel,
-      primaryLabel: '다시 시도',
+      primaryLabel: l10n.game01ScreenRetryButton,
       primaryColor: Colors.orange,
     );
   }
 
   Widget _buildAllClearedOverlay() {
     return buildDialogCard(
-      title: '전체 클리어! 🏆',
-      message: '${kLevels.length}개 단계를 모두 완료했어요!\n정말 대단해요!',
+      title: l10n.game01ScreenAllClearedTitle,
+      message: l10n.game01ScreenAllClearedMessage(kLevels.length),
       titleColor: Colors.deepOrange,
-      onPrimaryAction: () => Navigator.of(context).maybePop(), // 게임 목록으로
-      primaryLabel: '확인',
+      onPrimaryAction: () => Navigator.of(context).maybePop(),
+      primaryLabel: l10n.game01ScreenConfirmButton,
       primaryColor: Colors.blue,
       showQuitButton: false,
     );

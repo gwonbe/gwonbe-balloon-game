@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/utils/base_game_state.dart';
 import 'package:balloon_game/utils/game_storage.dart';
 import 'package:balloon_game/widgets/balloon_painter.dart';
@@ -67,22 +68,40 @@ class _Question {
   List<int> buildChoices(Random random) {
     final Set<int> wrong = {};
 
+    // 정답과 다른, 헷갈리기 쉬운 후보를 먼저 추가한다.
     final List<int> near = [
       if (multiplier > 1) dan * (multiplier - 1),
       if (multiplier < 9) dan * (multiplier + 1),
       if (dan > 1) (dan - 1) * multiplier,
       if (dan < 9) (dan + 1) * multiplier,
     ]..shuffle(random);
+
     wrong.addAll(near.where((v) => v != answer));
 
-    final List<int> pool = _kAllProducts
+    // 오답 후보를 채운다. 중복된 곱셈 결과는 제거한다.
+    final List<int> pool = _kAllProducts.toSet()
         .where((v) => v != answer && !wrong.contains(v))
         .toList()
       ..shuffle(random);
-    wrong.addAll(pool.take(_kGridCount - 1 - wrong.length));
+
+    for (final value in pool) {
+      if (wrong.length >= _kGridCount - 1) break;
+      wrong.add(value);
+    }
+
+    // 오답 후보가 8개 미만이면 남은 정수로 채운다.
+    // 구구단 결과가 아닌 숫자도 사용할 수 있어 항상 9개를 확보한다.
+    int candidate = 1;
+    while (wrong.length < _kGridCount - 1) {
+      if (candidate != answer && !wrong.contains(candidate)) {
+        wrong.add(candidate);
+      }
+      candidate++;
+    }
 
     return [answer, ...wrong.take(_kGridCount - 1)]..shuffle(random);
   }
+
 }
 
 /// 그리드 한 칸의 풍선
@@ -97,6 +116,7 @@ class _Cell {
 // ───────── State ─────────
 
 class _Game02ScreenState extends BaseGameState<Game02Screen> {
+  late AppLocalizations l10n;
   final Random _random = Random();
 
   Timer? _gameTimer; // 1초마다 남은 시간 감소
@@ -171,6 +191,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
     cancelAllTimers();
     registerGameStart();
     _prepareNextQuestion();
+
     setState(() {
       _score = 0;
       _timeLeft = kGame02Duration;
@@ -178,7 +199,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
       _feedbackText = null;
     });
 
-    startBgm(); // 이미 재생 중이면 무시된다.
+    startBgm();
     startTimers();
   }
 
@@ -194,10 +215,14 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
   void _showFeedback(bool correct) {
     _feedbackTimer?.cancel();
+
     setState(() {
       _feedbackCorrect = correct;
-      _feedbackText = correct ? '딩동댕!' : '땡!';
+      _feedbackText = correct
+          ? l10n.game02ScreenCorrectFeedback
+          : l10n.game02ScreenIncorrectFeedback;
     });
+
     _feedbackTimer = Timer(_kFeedbackDuration, () {
       if (!mounted) return;
       setState(() {
@@ -234,6 +259,8 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
   @override
   Widget build(BuildContext context) {
+    l10n = AppLocalizations.of(context)!;
+
     // 일시정지 중에는 문제/보기를 가려서 시간이 멈춘 채 답을 찾지 못하게 한다.
     final bool showBoard = _status == _GameStatus.playing && !isPaused;
 
@@ -267,7 +294,11 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
                 correct: _feedbackCorrect,
               ),
             if (_status == _GameStatus.ready)
-              _StartOverlay(onStart: _startGame),
+              _StartOverlay(
+                onStart: _startGame,
+                message: l10n.game02ScreenStartMessage(kGame02Duration),
+                startButtonLabel: l10n.game02ScreenStartButton,
+              ),
             if (_status == _GameStatus.gameOver) _buildGameOverOverlay(),
           ],
         ),
@@ -319,14 +350,14 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
                     InfoChip(
                       icon: Icons.star,
                       value: '$_score',
-                      unit: '점',
+                      unit: l10n.game02ScreenScoreUnit,
                       width: 95,
                     ),
                     const SizedBox(width: 8),
                     InfoChip(
                       icon: Icons.timer,
                       value: '$_timeLeft',
-                      unit: '초',
+                      unit: l10n.game02ScreenSecondUnit,
                       width: 90,
                     ),
                   ],
@@ -345,11 +376,11 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
   Widget _buildGameOverOverlay() {
     return buildDialogCard(
-      title: '시간 종료! ⏰',
-      message: '맞힌 개수 : $_score',
+      title: l10n.game02ScreenGameOverTitle,
+      message: l10n.game02ScreenGameOverMessage(_score),
       titleColor: Colors.black87,
-      onPrimaryAction: () => Navigator.of(context).maybePop(), // 게임 목록으로
-      primaryLabel: '확인',
+      onPrimaryAction: () => Navigator.of(context).maybePop(),
+      primaryLabel: l10n.game02ScreenConfirmButton,
       primaryColor: Colors.blue,
       showQuitButton: false,
     );
@@ -454,8 +485,14 @@ class _FeedbackOverlay extends StatelessWidget {
 /// 게임 시작 전 안내
 class _StartOverlay extends StatelessWidget {
   final VoidCallback onStart;
+  final String message;
+  final String startButtonLabel;
 
-  const _StartOverlay({required this.onStart});
+  const _StartOverlay({
+    required this.onStart,
+    required this.message,
+    required this.startButtonLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -467,22 +504,30 @@ class _StartOverlay extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                '구구단의 정답을 찾아 터뜨리세요!\n$kGame02Duration초 동안 최대한 많이 맞혀보세요!',
-                style: TextStyle(fontSize: 16, color: Colors.white),
+              Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: onStart,
                 style: ElevatedButton.styleFrom(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 14,
+                  ),
                   backgroundColor: Colors.orange,
                 ),
-                child: const Text(
-                  '게임 시작',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                child: Text(
+                  startButtonLabel,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],

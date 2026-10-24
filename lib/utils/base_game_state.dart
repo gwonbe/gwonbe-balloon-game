@@ -1,3 +1,4 @@
+import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/utils/app_bgm.dart';
 import 'package:balloon_game/utils/bgm_player.dart';
 import 'package:balloon_game/utils/game_storage.dart';
@@ -23,7 +24,9 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     Colors.orange,
     Colors.amber,
     Colors.green,
+    Colors.teal,
     Colors.blue,
+    Colors.indigo,
     Colors.purple,
   ];
 
@@ -76,6 +79,8 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     await GameStorage.setAdCount(0);
     if (!navigator.mounted) return;
 
+    final l10n = AppLocalizations.of(navigator.context)!;
+
     await showDialog<void>(
       context: navigator.context,
       barrierDismissible: false,
@@ -83,20 +88,20 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: const Text(
-          '광고타임!',
+        title: Text(
+          l10n.baseGameStateAdTimeTitle,
           textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: const Text(
-          '확인 버튼을 눌러주세요.',
+        content: Text(
+          l10n.baseGameStateAdTimeMessage,
           textAlign: TextAlign.center,
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('확인'),
+            child: Text(l10n.baseGameStateConfirmButton),
           ),
         ],
       ),
@@ -147,7 +152,6 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     final bool pausedByDialog = isPlaying && !_isPaused;
     if (pausedByDialog) _pauseGame();
 
-    // 비동기 작업 전에 Navigator를 확보한다.
     final navigator = _navigator;
 
     if (navigator == null || !navigator.mounted) {
@@ -158,26 +162,30 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
       return;
     }
 
+    final l10n = AppLocalizations.of(navigator.context)!;
+
     final bool? quit = await showDialog<bool>(
       context: navigator.context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          '일시정지 ⏸️',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-        content: const Text(
-          '게임을 중단하시겠습니까?',
+        title: Text(
+          l10n.baseGameStatePauseTitle,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          l10n.baseGameStatePauseMessage,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 16),
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           OutlinedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('중단하기'),
+            child: Text(l10n.baseGameStateQuitButton),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -185,7 +193,7 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
             ),
-            child: const Text('계속하기'),
+            child: Text(l10n.baseGameStateContinueButton),
           ),
         ],
       ),
@@ -193,7 +201,6 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
 
     _isDialogOpen = false;
 
-    // await 이후에는 State와 Navigator의 생존 여부를 각각 확인한다.
     if (!mounted || !navigator.mounted) return;
 
     if (quit == true) {
@@ -270,6 +277,8 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     required Color primaryColor,
     bool showQuitButton = true,
   }) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       color: Colors.black.withValues(alpha: 0.5),
       child: Center(
@@ -309,7 +318,7 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 12),
                       ),
-                      child: const Text('중단하기'),
+                      child: Text(l10n.baseGameStateQuitButton),
                     ),
                     const SizedBox(width: 12),
                   ],
