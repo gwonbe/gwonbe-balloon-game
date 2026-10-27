@@ -169,7 +169,7 @@ class _GameListScreenState extends State<GameListScreen> {
 
 /// 게임 목록의 카드 한 칸. 높이가 고정이라 모든 카드의 크기가 같다.
 class _GameCard extends StatelessWidget {
-  static const double height = 96;
+  static const double height = 110;
 
   final GameItem game;
   final String title;
@@ -213,7 +213,7 @@ class _GameCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        game.title,
+                        title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -223,9 +223,9 @@ class _GameCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        game.description,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        description,
+                        textAlign: TextAlign.start,
+                        softWrap: true,
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey.shade700,
@@ -234,8 +234,11 @@ class _GameCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          const Icon(Icons.emoji_events,
-                              size: 16, color: Colors.amber),
+                          const Icon(
+                            Icons.emoji_events,
+                            size: 16,
+                            color: Colors.amber,
+                          ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
