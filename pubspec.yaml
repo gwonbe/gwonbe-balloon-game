@@ -30,7 +30,8 @@ flutter:
   generate: true
   uses-material-design: true
   assets:
-    - assets/home_001.png # home image
+    - assets/home_001_ko.png
+    - assets/home_001_en.png
     - assets/2026_012_0-82.mp3 # game bgm
     - assets/2026_003_0-80.mp3 # home bgm
 

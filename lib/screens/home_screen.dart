@@ -46,23 +46,34 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    // 현재 앱에서 사용하는 언어 코드
+    final languageCode = Localizations.localeOf(context).languageCode;
+
+    // 언어별 홈 이미지 경로
+    final String homeImage = switch (languageCode) {
+      'ko' => 'assets/home_001_ko.png',
+      _ => 'assets/home_001_en.png',
+    };
+
     return Scaffold(
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const GameListScreen()),
+            MaterialPageRoute(
+              builder: (context) => const GameListScreen(),
+            ),
           );
         },
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          color: const Color(0xFFB8E3F3), // 남은 부분을 채울 배경 색상
+          color: const Color(0xFFB8E3F3),
           child: Stack(
             children: [
               Center(
                 child: Image.asset(
-                  'assets/home_001.png',
+                  homeImage,
                   fit: BoxFit.contain,
                   width: double.infinity,
                   height: double.infinity,
@@ -86,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           Shadow(
                             offset: Offset(0, 2),
                             blurRadius: 4.0,
-                            color: Color(0x80000000), // 텍스트 가독성을 위한 그림자
+                            color: Color(0x80000000), // 그림자
                           ),
                         ],
                       ),
