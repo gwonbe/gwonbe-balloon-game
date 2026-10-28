@@ -169,8 +169,6 @@ class _GameListScreenState extends State<GameListScreen> {
 
 /// 게임 목록의 카드 한 칸. 높이가 고정이라 모든 카드의 크기가 같다.
 class _GameCard extends StatelessWidget {
-  static const double height = 110;
-
   final GameItem game;
   final String title;
   final String description;
@@ -185,75 +183,102 @@ class _GameCard extends StatelessWidget {
     required this.onTap,
   });
 
+  Color get _accentColor {
+    switch (game.gameNumber) {
+      case 1:
+        return const Color(0xFF4A9FE8);
+      case 2:
+        return const Color(0xFF9270DB);
+      default:
+        return const Color(0xFF45AD87);
+    }
+  }
+
+  Color get _backgroundColor {
+    switch (game.gameNumber) {
+      case 1:
+        return const Color(0xFFF1F8FF);
+      case 2:
+        return const Color(0xFFF7F3FF);
+      default:
+        return const Color(0xFFF0FAF5);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final color = _accentColor;
+
     return SizedBox(
-      height: height,
+      height: 130,
       child: Card(
         margin: EdgeInsets.zero,
         elevation: 2,
-        clipBehavior: Clip.antiAlias, // 물결 효과가 둥근 모서리 밖으로 나가지 않게
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shadowColor: color.withValues(alpha: 0.12),
+        color: _backgroundColor,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: InkWell(
           onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.blue.shade100,
-                  child: Icon(game.icon, color: Colors.blue.shade700),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            children: [
+              Container(width: 5, color: color),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
                     children: [
-                      Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(color: color.withValues(alpha: 0.13), borderRadius: BorderRadius.circular(15)),
+                        child: Icon(game.icon, color: color, size: 25),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        description,
-                        textAlign: TextAlign.start,
-                        softWrap: true,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.emoji_events,
-                            size: 16,
-                            color: Colors.amber,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              bestText,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF263448)),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(minHeight: 36),
+                              child: Text(
+                                description,
+                                style: TextStyle(fontSize: 13, height: 1.4, color: Colors.blueGrey.shade700),
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Row(
+                              children: [
+                                Icon(Icons.emoji_events_rounded, size: 17, color: color),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(
+                                    bestText,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
+                      Icon(Icons.chevron_right_rounded, color: color, size: 24),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
