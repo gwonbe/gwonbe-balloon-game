@@ -238,10 +238,13 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   void _endGame() {
     cancelAllTimers();
     stopBgm();
+
     setState(() {
       _status = _GameStatus.gameOver;
       _feedbackText = null;
     });
+
+    unawaited(saveBestScore());
   }
 
   void _showFeedback(bool correct) {

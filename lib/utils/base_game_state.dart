@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/utils/app_bgm.dart';
 import 'package:balloon_game/utils/bgm_player.dart';
@@ -216,10 +217,8 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     cancelAllTimers();
     _bgm.dispose();
 
-    // 최고 기록 갱신 (현재 기록이 더 높을 때만 덮어씀)
-    GameStorage.saveBestScoreIfHigher(bestScoreKey, currentScore);
+    unawaited(saveBestScore());
 
-    // 게임 화면이 닫힌 뒤(게임 목록이 보이는 상태)에 광고 여부를 확인
     final nav = _navigator;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showAdIfNeeded(nav);
@@ -249,7 +248,6 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   Widget buildPauseButton() {
     return circleButton(Icons.pause, showPauseDialog);
   }
-
 
   /// 게임 진행 중에는 시스템 뒤로가기를 일시정지로 처리한다.
   /// 게임이 종료되면 PopScope가 화면 이동을 허용한다.
@@ -341,5 +339,9 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
         ),
       ),
     );
+  }
+
+  Future<void> saveBestScore() async {
+    await GameStorage.saveBestScoreIfHigher(bestScoreKey, currentScore);
   }
 }

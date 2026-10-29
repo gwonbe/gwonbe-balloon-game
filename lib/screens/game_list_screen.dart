@@ -51,15 +51,22 @@ class _GameListScreenState extends State<GameListScreen> {
   }
 
   Future<void> _loadBestScores() async {
-    final Map<String, int> loaded = {};
-    for (final game in _games) {
-      loaded[game.bestScoreKey] = await GameStorage.getBestScore(game.bestScoreKey);
-    }
+    final keys = [
+      GameStorage.bestScoreGame01,
+      GameStorage.bestScoreGame02,
+      GameStorage.bestScoreGame03,
+    ];
+
+    final scores = await Future.wait(
+      keys.map((key) async => MapEntry(key, await GameStorage.getBestScore(key))),
+    );
+
     if (!mounted) return;
+
     setState(() {
       _bestScores
         ..clear()
-        ..addAll(loaded);
+        ..addEntries(scores);
     });
   }
 

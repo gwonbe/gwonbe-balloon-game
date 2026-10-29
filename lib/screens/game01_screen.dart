@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/utils/base_game_state.dart';
@@ -237,15 +238,16 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
   void _finishLevelCleared() {
     cancelAllTimers();
     stopBgm();
+
     setState(() {
       _timeLeft = 0;
       if (_levelIndex + 1 > _maxLevelCleared) {
-        _maxLevelCleared = _levelIndex + 1; // ← 추가
+        _maxLevelCleared = _levelIndex + 1;
       }
-      _status = (_levelIndex == kLevels.length - 1)
-          ? _GameStatus.allCleared
-          : _GameStatus.levelCleared;
+      _status = _levelIndex == kLevels.length - 1 ? _GameStatus.allCleared : _GameStatus.levelCleared;
     });
+
+    unawaited(saveBestScore());
   }
 
   /// 풍선을 kMaxMiss개 놓쳐서 게임 종료

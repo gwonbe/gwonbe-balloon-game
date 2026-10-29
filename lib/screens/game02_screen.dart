@@ -205,12 +205,15 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
   void _endGame() {
     cancelAllTimers();
-    stopBgm(); // 게임 종료 다이얼로그에 머무는 동안 음악 정지
+    stopBgm();
+
     setState(() {
       _status = _GameStatus.gameOver;
       _feedbackText = null;
       _pendingNext = false;
     });
+
+    unawaited(saveBestScore());
   }
 
   void _showFeedback(bool correct) {
