@@ -22,7 +22,7 @@ class Game01Screen extends StatefulWidget {
 const int kLevelCount = 5;
 
 /// 모든 단계 공통 제한 시간(초)
-const int kLevelDurationSeconds = 35;
+const int kLevelDurationSeconds = 32;
 
 /// 이 횟수만큼 풍선을 놓치면 게임 종료
 const int kMaxMiss = 5;
@@ -329,7 +329,6 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
                     StartOverlay(
                       message: l10n.game01ScreenStartMessage(
                         kLevels.length,
-                        kLevelDurationSeconds,
                         kMaxMiss,
                       ),
                       buttonLabel: l10n.game01ScreenStartButton,
@@ -404,7 +403,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   Widget _buildLevelClearOverlay() {
     return buildDialogCard(
       title: l10n.game01ScreenLevelClearedTitle(_currentLevel.level),
-      message: l10n.game01ScreenLevelClearedMessage(kLevelDurationSeconds, _miss),
+      message: l10n.game01ScreenLevelClearedMessage(_miss),
       primaryLabel: l10n.game01ScreenNextLevelButton,
       onPrimaryAction: _goToNextLevel,
     );

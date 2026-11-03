@@ -78,8 +78,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game01ScreenMissUnit => '개';
 
   @override
-  String game01ScreenStartMessage(int levelCount, int duration, int maxMiss) {
-    return '총 $levelCount단계\n단계마다 $duration초 동안 풍선을 터뜨리세요!\n풍선을 $maxMiss개 놓치면 게임이 끝나요!\n단계가 올라갈수록 풍선이 더 빨라져요!';
+  String game01ScreenStartMessage(int levelCount, int maxMiss) {
+    return '총 $levelCount단계\n풍선을 $maxMiss개 놓치면 게임이 끝나요!\n단계가 올라갈수록 풍선이 더 빨라져요!';
   }
 
   @override
@@ -91,8 +91,8 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String game01ScreenLevelClearedMessage(int duration, int miss) {
-    return '$duration초를 잘 버텼어요!\n놓친 풍선: $miss개\n다음 단계에 도전할까요?';
+  String game01ScreenLevelClearedMessage(Object miss) {
+    return '놓친 풍선: $miss개\n다음 단계에 도전할까요?';
   }
 
   @override
@@ -133,9 +133,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game02ScreenIncorrectFeedback => '땡!';
 
   @override
-  String game02ScreenStartMessage(int duration) {
-    return '구구단의 정답을 찾아 터뜨리세요!\n$duration초 동안 최대한 많이 맞혀보세요!';
-  }
+  String get game02ScreenStartMessage => '구구단의 정답을 찾아 터뜨리세요!';
 
   @override
   String get game02ScreenStartButton => '게임 시작';
@@ -164,9 +162,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game03ScreenIncorrectFeedback => '땡!';
 
   @override
-  String game03ScreenStartMessage(int duration) {
-    return '계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!\n$duration초 동안 도전하세요!';
-  }
+  String get game03ScreenStartMessage => '계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!';
 
   @override
   String get game03ScreenStartButton => '게임 시작';

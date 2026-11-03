@@ -227,8 +227,8 @@ abstract class AppLocalizations {
   /// No description provided for @game01ScreenStartMessage.
   ///
   /// In ko, this message translates to:
-  /// **'총 {levelCount}단계\n단계마다 {duration}초 동안 풍선을 터뜨리세요!\n풍선을 {maxMiss}개 놓치면 게임이 끝나요!\n단계가 올라갈수록 풍선이 더 빨라져요!'**
-  String game01ScreenStartMessage(int levelCount, int duration, int maxMiss);
+  /// **'총 {levelCount}단계\n풍선을 {maxMiss}개 놓치면 게임이 끝나요!\n단계가 올라갈수록 풍선이 더 빨라져요!'**
+  String game01ScreenStartMessage(int levelCount, int maxMiss);
 
   /// No description provided for @game01ScreenStartButton.
   ///
@@ -245,8 +245,8 @@ abstract class AppLocalizations {
   /// No description provided for @game01ScreenLevelClearedMessage.
   ///
   /// In ko, this message translates to:
-  /// **'{duration}초를 잘 버텼어요!\n놓친 풍선: {miss}개\n다음 단계에 도전할까요?'**
-  String game01ScreenLevelClearedMessage(int duration, int miss);
+  /// **'놓친 풍선: {miss}개\n다음 단계에 도전할까요?'**
+  String game01ScreenLevelClearedMessage(Object miss);
 
   /// No description provided for @game01ScreenNextLevelButton.
   ///
@@ -317,8 +317,8 @@ abstract class AppLocalizations {
   /// No description provided for @game02ScreenStartMessage.
   ///
   /// In ko, this message translates to:
-  /// **'구구단의 정답을 찾아 터뜨리세요!\n{duration}초 동안 최대한 많이 맞혀보세요!'**
-  String game02ScreenStartMessage(int duration);
+  /// **'구구단의 정답을 찾아 터뜨리세요!'**
+  String get game02ScreenStartMessage;
 
   /// No description provided for @game02ScreenStartButton.
   ///
@@ -371,8 +371,8 @@ abstract class AppLocalizations {
   /// No description provided for @game03ScreenStartMessage.
   ///
   /// In ko, this message translates to:
-  /// **'계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!\n{duration}초 동안 도전하세요!'**
-  String game03ScreenStartMessage(int duration);
+  /// **'계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!'**
+  String get game03ScreenStartMessage;
 
   /// No description provided for @game03ScreenStartButton.
   ///

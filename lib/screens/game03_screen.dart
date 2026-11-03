@@ -17,7 +17,7 @@ class Game03Screen extends StatefulWidget {
 // ───────── 상수 ─────────
 
 /// 제한 시간(초)
-const int _kGameDuration = 60;
+const int _kGameDuration = 48;
 
 /// 5x5 풍선판
 const int _kGridColumns = 5;
@@ -356,7 +356,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
                 FeedbackOverlay(text: _feedbackText!, correct: _feedbackCorrect),
               if (_status == _GameStatus.ready)
                 StartOverlay(
-                  message: l10n.game03ScreenStartMessage(_kGameDuration),
+                  message: l10n.game03ScreenStartMessage,
                   buttonLabel: l10n.game03ScreenStartButton,
                   onStart: _startGame,
                 ),

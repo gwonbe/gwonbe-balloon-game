@@ -80,8 +80,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game01ScreenMissUnit => '';
 
   @override
-  String game01ScreenStartMessage(int levelCount, int duration, int maxMiss) {
-    return 'Clear all $levelCount levels!\nPop balloons for $duration seconds in each level!\nMissing $maxMiss balloons ends the game!\nBalloons get faster as you progress!';
+  String game01ScreenStartMessage(int levelCount, int maxMiss) {
+    return 'Clear all $levelCount levels!\nMissing $maxMiss balloons ends the game!\nBalloons get faster as you progress!';
   }
 
   @override
@@ -93,8 +93,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String game01ScreenLevelClearedMessage(int duration, int miss) {
-    return 'You survived for $duration seconds!\nBalloons missed: $miss\nReady for the next level?';
+  String game01ScreenLevelClearedMessage(Object miss) {
+    return 'Balloons missed: $miss\nReady for the next level?';
   }
 
   @override
@@ -135,9 +135,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game02ScreenIncorrectFeedback => 'Incorrect!';
 
   @override
-  String game02ScreenStartMessage(int duration) {
-    return 'Pop the balloon with the correct multiplication answer!\nGet as many answers right as you can in $duration seconds!';
-  }
+  String get game02ScreenStartMessage =>
+      'Pop the balloon with the correct multiplication answer!';
 
   @override
   String get game02ScreenStartButton => 'Start Game';
@@ -166,9 +165,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game03ScreenIncorrectFeedback => 'Incorrect!';
 
   @override
-  String game03ScreenStartMessage(int duration) {
-    return 'Pop the balloons matching the answer to the equation!\nYou have $duration seconds!';
-  }
+  String get game03ScreenStartMessage =>
+      'Pop the balloons matching the answer to the equation!';
 
   @override
   String get game03ScreenStartButton => 'Start Game';
