@@ -152,7 +152,7 @@ class _GameListScreenState extends State<GameListScreen> {
   }
 }
 
-/// 게임 목록의 카드 한 칸. 높이가 고정이라 모든 카드의 크기가 같다.
+/// 게임 목록 카드: 고정된 높이와 정보 배치로 각 항목을 한눈에 읽을 수 있다.
 class _GameCard extends StatelessWidget {
   final GameItem game;
   final String bestText;
@@ -167,36 +167,87 @@ class _GameCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color color = game.color;
+    final Color softColor = Color.lerp(game.backgroundColor, Colors.white, 0.42)!;
 
-    return SizedBox(
-      height: 130,
-      child: Card(
-        margin: EdgeInsets.zero,
-        elevation: 2,
-        shadowColor: color.withValues(alpha: 0.12),
-        color: game.backgroundColor,
+    return Container(
+      height: 148,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.13),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(26),
         clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: InkWell(
-          onTap: onTap,
-          child: Row(
-            children: [
-              Container(width: 5, color: color),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, softColor],
+            ),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: color.withValues(alpha: 0.13)),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(26),
+            onTap: onTap,
+            child: Stack(
+              children: [
+                Positioned(
+                  right: -24,
+                  top: -34,
+                  child: Container(
+                    width: 112,
+                    height: 112,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color.withValues(alpha: 0.055),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 32,
+                  bottom: -43,
+                  child: Container(
+                    width: 86,
+                    height: 86,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color.withValues(alpha: 0.045),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
                   child: Row(
                     children: [
                       Container(
-                        width: 46,
-                        height: 46,
+                        width: 58,
+                        height: 58,
                         decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.13),
-                          borderRadius: BorderRadius.circular(15),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              color.withValues(alpha: 0.20),
+                              color.withValues(alpha: 0.09),
+                            ],
+                          ),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: color.withValues(alpha: 0.16),
+                          ),
                         ),
-                        child: Icon(game.icon, color: color, size: 25),
+                        child: Icon(game.icon, color: color, size: 28),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 15),
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -207,27 +258,37 @@ class _GameCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                                height: 1.15,
+                                fontWeight: FontWeight.w800,
                                 color: AppConst.cardTitleColor,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(minHeight: 36),
-                              child: Text(
-                                game.description,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  height: 1.4,
-                                  color: Colors.blueGrey.shade700,
+                            const SizedBox(height: 6),
+                            SizedBox(
+                              height: 40,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  game.description,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    height: 1.35,
+                                    color: Colors.blueGrey.shade700,
+                                  ),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 7),
                             Row(
                               children: [
-                                Icon(Icons.emoji_events_rounded, size: 17, color: color),
+                                Icon(
+                                  Icons.emoji_events_rounded,
+                                  size: 16,
+                                  color: color,
+                                ),
                                 const SizedBox(width: 5),
                                 Expanded(
                                   child: Text(
@@ -236,7 +297,7 @@ class _GameCard extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                       color: color,
                                     ),
                                   ),
@@ -246,13 +307,17 @@ class _GameCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Icon(Icons.chevron_right_rounded, color: color, size: 24),
+                      const SizedBox(width: 6),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        color: color.withValues(alpha: 0.75),
+                        size: 21,
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
