@@ -1,3 +1,4 @@
+import 'package:balloon_game/utils/app_const.dart';
 import 'package:flutter/material.dart';
 
 /// 상단 정보 칩 (아이콘 + 값 + 단위).
@@ -36,7 +37,7 @@ class InfoChip extends StatelessWidget {
           // 왼쪽: 아이콘 고정
           SizedBox(
             width: 22,
-            child: Icon(icon, size: 18, color: Colors.deepOrange),
+            child: Icon(icon, size: 18, color: AppConst.infoChipIcon),
           ),
 
           // 가운데: 숫자만 가운데 정렬
@@ -44,7 +45,11 @@ class InfoChip extends StatelessWidget {
             child: Text(
               value,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: AppConst.infoChipValue,
+              ),
             ),
           ),
 
@@ -55,7 +60,7 @@ class InfoChip extends StatelessWidget {
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 12,
-              color: Colors.black54,
+              color: AppConst.infoChipUnit,
             ),
           ),
         ],

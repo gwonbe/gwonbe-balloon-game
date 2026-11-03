@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:balloon_game/l10n/app_localizations.dart';
+import 'package:balloon_game/utils/app_const.dart';
 import 'package:balloon_game/utils/base_game_state.dart';
 import 'package:balloon_game/utils/game_storage.dart';
-import 'package:balloon_game/widgets/balloon_painter.dart';
 import 'package:balloon_game/widgets/info_chip.dart';
 import 'package:flutter/material.dart';
 
@@ -79,7 +79,7 @@ class _Question {
     wrong.addAll(near.where((v) => v != answer));
 
     // 오답 후보를 채운다. 중복된 곱셈 결과는 제거한다.
-    final List<int> pool = _kAllProducts.toSet()
+    final List<int> pool = _kAllProducts
         .where((v) => v != answer && !wrong.contains(v))
         .toList()
       ..shuffle(random);
@@ -89,8 +89,7 @@ class _Question {
       wrong.add(value);
     }
 
-    // 오답 후보가 8개 미만이면 남은 정수로 채운다.
-    // 구구단 결과가 아닌 숫자도 사용할 수 있어 항상 9개를 확보한다.
+    // 오답 후보가 8개 미만이면 남은 정수로 채워 항상 9개를 확보한다.
     int candidate = 1;
     while (wrong.length < _kGridCount - 1) {
       if (candidate != answer && !wrong.contains(candidate)) {
@@ -101,7 +100,6 @@ class _Question {
 
     return [answer, ...wrong.take(_kGridCount - 1)]..shuffle(random);
   }
-
 }
 
 /// 그리드 한 칸의 풍선
@@ -177,12 +175,12 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
     _question = _Question.random(_random);
 
     final List<int> values = _question.buildChoices(_random);
-    final List<Color> colors = List<Color>.from(balloonColors)
+    final List<Color> colors = List<Color>.from(AppConst.balloonColors)
       ..shuffle(_random);
 
     _cells = List.generate(
       _kGridCount,
-          (i) => _Cell(value: values[i], color: colors[i]),
+      (i) => _Cell(value: values[i], color: colors[i]),
     );
     _pendingNext = false;
   }
@@ -269,47 +267,53 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
     return withSystemBackPause(
       Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF87CEEB), Color(0xFFE0F7FA)],
-          ),
-        ),
-        child: Stack(
-          children: [
-            if (showBoard)
-              Positioned.fill(
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 140),
-                    child: Center(child: _buildGrid()),
+        body: GameBackground(
+          child: Stack(
+            children: [
+              if (showBoard)
+                Positioned.fill(
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 140),
+                      child: Center(child: _buildGrid()),
+                    ),
                   ),
                 ),
+              GameTopBar(
+                pauseButton: buildPauseButton(),
+                chips: [
+                  InfoChip(
+                    icon: Icons.star,
+                    value: '$_score',
+                    unit: l10n.game02ScreenScoreUnit,
+                    width: 95,
+                  ),
+                  InfoChip(
+                    icon: Icons.timer,
+                    value: '$_timeLeft',
+                    unit: l10n.game02ScreenSecondUnit,
+                    width: 90,
+                  ),
+                ],
+                bottom: showBoard ? _buildQuestionBoard() : null,
               ),
-            _buildTopBar(showBoard),
-            if (_feedbackText != null)
-              _FeedbackOverlay(
-                text: _feedbackText!,
-                correct: _feedbackCorrect,
-              ),
-            if (_status == _GameStatus.ready)
-              _StartOverlay(
-                onStart: _startGame,
-                message: l10n.game02ScreenStartMessage(kGame02Duration),
-                startButtonLabel: l10n.game02ScreenStartButton,
-              ),
-            if (_status == _GameStatus.gameOver) _buildGameOverOverlay(),
-          ],
+              if (_feedbackText != null)
+                FeedbackOverlay(text: _feedbackText!, correct: _feedbackCorrect),
+              if (_status == _GameStatus.ready)
+                StartOverlay(
+                  message: l10n.game02ScreenStartMessage(kGame02Duration),
+                  buttonLabel: l10n.game02ScreenStartButton,
+                  onStart: _startGame,
+                ),
+              if (_status == _GameStatus.gameOver) _buildGameOverOverlay(),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
+  /// 3x3 보기 풍선판
   Widget _buildGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -325,11 +329,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
             runSpacing: gap,
             children: [
               for (int i = 0; i < _cells.length; i++)
-                _PoppableBalloon(
-                  size: cellSize,
-                  cell: _cells[i],
-                  onTap: () => _onTapCell(i),
-                ),
+                _buildCell(i, cellSize),
             ],
           ),
         );
@@ -337,69 +337,30 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
     );
   }
 
-  Widget _buildTopBar(bool showBoard) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                buildPauseButton(),
-                Row(
-                  children: [
-                    InfoChip(
-                      icon: Icons.star,
-                      value: '$_score',
-                      unit: l10n.game02ScreenScoreUnit,
-                      width: 95,
-                    ),
-                    const SizedBox(width: 8),
-                    InfoChip(
-                      icon: Icons.timer,
-                      value: '$_timeLeft',
-                      unit: l10n.game02ScreenSecondUnit,
-                      width: 90,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            if (showBoard) ...[
-              const SizedBox(height: 14),
-              _QuestionBoard(question: _question),
-            ],
-          ],
+  /// 터지면(커지면서 투명해짐) 탭이 막히는 그리드 풍선
+  Widget _buildCell(int index, double size) {
+    final _Cell cell = _cells[index];
+    final bool popped = cell.popped;
+
+    return IgnorePointer(
+      ignoring: popped,
+      child: GestureDetector(
+        onTap: () => _onTapCell(index),
+        child: AnimatedScale(
+          scale: popped ? 1.4 : 1.0,
+          duration: _kPopDuration,
+          child: AnimatedOpacity(
+            opacity: popped ? 0.0 : 1.0,
+            duration: _kPopDuration,
+            child: LabeledBalloon(size: size, color: cell.color, label: '${cell.value}'),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildGameOverOverlay() {
-    return buildDialogCard(
-      title: l10n.game02ScreenGameOverTitle,
-      message: l10n.game02ScreenGameOverMessage(_score),
-      titleColor: Colors.black87,
-      onPrimaryAction: () => Navigator.of(context).maybePop(),
-      primaryLabel: l10n.game02ScreenConfirmButton,
-      primaryColor: Colors.blue,
-      showQuitButton: false,
-    );
-  }
-}
-
-// ───────── 위젯 ─────────
-
-/// 상단 문제 표시: [단] × [곱]
-class _QuestionBoard extends StatelessWidget {
-  final _Question question;
-
-  const _QuestionBoard({required this.question});
-
-  @override
-  Widget build(BuildContext context) {
+  /// 상단 문제 표시: [단] × [곱]
+  Widget _buildQuestionBoard() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
@@ -409,177 +370,24 @@ class _QuestionBoard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _LabeledBalloon(size: 56, color: Colors.blueAccent, label: '${question.dan}'),
+          LabeledBalloon(size: 56, color: AppConst.questionNumberColor, label: '${_question.dan}'),
           const SizedBox(width: 10),
-          const _LabeledBalloon(size: 56, color: Colors.redAccent, label: '×'),
+          const LabeledBalloon(size: 56, color: AppConst.questionOperatorColor, label: '×'),
           const SizedBox(width: 10),
-          _LabeledBalloon(size: 56, color: Colors.blueAccent, label: '${question.multiplier}'),
+          LabeledBalloon(size: 56, color: AppConst.questionNumberColor, label: '${_question.multiplier}'),
         ],
       ),
     );
   }
-}
 
-/// 터지면(커지면서 투명해짐) 탭이 막히는 그리드 풍선
-class _PoppableBalloon extends StatelessWidget {
-  final double size;
-  final _Cell cell;
-  final VoidCallback onTap;
-
-  const _PoppableBalloon({
-    required this.size,
-    required this.cell,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool popped = cell.popped;
-    return IgnorePointer(
-      ignoring: popped,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedScale(
-          scale: popped ? 1.4 : 1.0,
-          duration: _kPopDuration,
-          child: AnimatedOpacity(
-            opacity: popped ? 0.0 : 1.0,
-            duration: _kPopDuration,
-            child: _LabeledBalloon(size: size, color: cell.color, label: '${cell.value}'),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 딩동댕! / 땡! 메시지
-class _FeedbackOverlay extends StatelessWidget {
-  final String text;
-  final bool correct;
-
-  const _FeedbackOverlay({required this.text, required this.correct});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-        decoration: BoxDecoration(
-          color: (correct ? Colors.green : Colors.red).withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-      ),
-    );
-  }
-}
-
-/// 게임 시작 전 안내
-class _StartOverlay extends StatelessWidget {
-  final VoidCallback onStart;
-  final String message;
-  final String startButtonLabel;
-
-  const _StartOverlay({
-    required this.onStart,
-    required this.message,
-    required this.startButtonLabel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black.withValues(alpha: 0.4),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                message,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: onStart,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 14,
-                  ),
-                  backgroundColor: Colors.orange,
-                ),
-                child: Text(
-                  startButtonLabel,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 숫자/기호 텍스트가 표시된 풍선 (그리드와 상단 문제 풍선 공용)
-class _LabeledBalloon extends StatelessWidget {
-  final double size;
-  final Color color;
-  final String label;
-
-  const _LabeledBalloon({
-    required this.size,
-    required this.color,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size * 1.3,
-      child: Stack(
-        children: [
-          CustomPaint(
-            size: Size(size, size * 1.3),
-            painter: BalloonPainter(color: color),
-          ),
-          Align(
-            alignment: const Alignment(0, -0.35),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: size * 0.34,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                shadows: const [
-                  Shadow(color: Colors.black38, blurRadius: 3, offset: Offset(0, 1)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+  // 시간 종료 = 점수 결과를 보여주는 긍정 다이얼로그
+  Widget _buildGameOverOverlay() {
+    return buildDialogCard(
+      title: l10n.game02ScreenGameOverTitle,
+      message: l10n.game02ScreenGameOverMessage(_score),
+      primaryLabel: l10n.game02ScreenConfirmButton,
+      onPrimaryAction: () => Navigator.of(context).maybePop(),
+      showQuitButton: false,
     );
   }
 }

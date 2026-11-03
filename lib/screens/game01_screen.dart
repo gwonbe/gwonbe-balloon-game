@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:balloon_game/l10n/app_localizations.dart';
+import 'package:balloon_game/utils/app_const.dart';
 import 'package:balloon_game/utils/base_game_state.dart';
 import 'package:balloon_game/utils/game_storage.dart';
 import 'package:balloon_game/widgets/balloon_painter.dart';
@@ -14,6 +15,8 @@ class Game01Screen extends StatefulWidget {
   @override
   State<Game01Screen> createState() => _Game01ScreenState();
 }
+
+// ───────── 상수 / 설정 ─────────
 
 /// 전체 단계 수
 const int kLevelCount = 5;
@@ -32,7 +35,7 @@ const double kBalloonMaxSize = 75;
 /// 실제 이동 속도(px/sec) = speed * 이 값
 const double _kSpeedScale = 1.875;
 
-// 실제 풍선보다 터치 영역을 사방으로 20px씩 확장
+/// 실제 풍선보다 터치 영역을 사방으로 20px씩 확장
 const double touchPadding = 20;
 
 /// 단계별 설정: 풍선 속도 범위, 제한 시간 동안 나오는 풍선 수
@@ -50,8 +53,8 @@ class LevelConfig {
   });
 }
 
-/// 모든 단계 30초 고정, 풍선 크기 고정.
-/// 단계가 오를수록 풍선이 빨라지고, 화면에 더 많이 나옵니다.
+/// 모든 단계 제한 시간과 풍선 크기는 같고,
+/// 단계가 오를수록 풍선이 빨라지고 화면에 더 많이 나온다.
 final List<LevelConfig> kLevels = List.generate(kLevelCount, (i) {
   return LevelConfig(
     level: i + 1,
@@ -64,10 +67,12 @@ final List<LevelConfig> kLevels = List.generate(kLevelCount, (i) {
 enum _GameStatus {
   ready, // 시작 전
   playing, // 진행 중 (일시정지는 부모의 isPaused로 관리)
-  levelCleared, // 30초를 버텨서 해당 단계 클리어
+  levelCleared, // 제한 시간을 버텨서 해당 단계 클리어
   levelFailed, // 풍선을 kMaxMiss개 놓쳐서 실패
   allCleared, // 마지막 단계까지 모두 클리어
 }
+
+// ───────── 모델 ─────────
 
 class Balloon {
   final int id;
@@ -92,7 +97,10 @@ class _FrameNotifier extends ChangeNotifier {
   void notify() => notifyListeners();
 }
 
-class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerProviderStateMixin {
+// ───────── State ─────────
+
+class _Game01ScreenState extends BaseGameState<Game01Screen>
+    with SingleTickerProviderStateMixin {
   late AppLocalizations l10n;
   final Random _random = Random();
   final List<Balloon> _balloons = [];
@@ -104,18 +112,15 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
   Duration _lastTick = Duration.zero;
   double _playTime = 0; // 이번 단계에서 실제로 플레이한 시간(초). 일시정지 시간은 제외
 
-  int _maxLevelCleared  = 0; // 이번 플레이에서 도달한 최고 단계 (1~5, 시작 전이면 0)
+  int _maxLevelCleared = 0; // 이번 플레이에서 클리어한 최고 단계 (1~5, 시작 전이면 0)
   int _levelIndex = 0; // 0-based (0 -> 단계 1)
   LevelConfig get _currentLevel => kLevels[_levelIndex];
 
-  int get _totalSpawnCount => _currentLevel.spawnCount;
-
   int _miss = 0; // 이번 단계에서 놓친 풍선 수 (단계 시작 시 0으로 초기화)
   int _spawnedCount = 0; // 이번 단계에서 이미 생성된 풍선 수
-  int _timeLeft = 0;
+  int _timeLeft = kLevelDurationSeconds;
 
   _GameStatus _status = _GameStatus.ready;
-
   Size _screenSize = Size.zero;
 
   @override
@@ -140,7 +145,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
   String get bestScoreKey => GameStorage.bestScoreGame01;
 
   @override
-  int get currentScore => _maxLevelCleared ;
+  int get currentScore => _maxLevelCleared;
 
   @override
   void cancelAllTimers() {
@@ -182,7 +187,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
 
     // 프레임 간격(초). 앱이 잠깐 멈췄다 돌아왔을 때 풍선이 튀지 않도록 상한을 둔다.
     final double dt =
-    ((elapsed - _lastTick).inMicroseconds / 1e6).clamp(0.0, 0.05).toDouble();
+        ((elapsed - _lastTick).inMicroseconds / 1e6).clamp(0.0, 0.05).toDouble();
     _lastTick = elapsed;
     _playTime += dt;
 
@@ -197,8 +202,9 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
     final int missed = before - _balloons.length;
 
     // 3) 제한 시간 안에 풍선이 고르게 나오도록 스폰
-    final double interval = kLevelDurationSeconds / _totalSpawnCount;
-    while (_spawnedCount < _totalSpawnCount &&
+    final int totalSpawn = _currentLevel.spawnCount;
+    final double interval = kLevelDurationSeconds / totalSpawn;
+    while (_spawnedCount < totalSpawn &&
         _playTime >= (_spawnedCount + 0.5) * interval) {
       _spawnBalloon();
     }
@@ -208,9 +214,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
 
     // 4) 미스가 바뀐 경우에만 화면 전체 갱신
     if (missed > 0) {
-      setState(() {
-        _miss += missed;
-      });
+      setState(() => _miss += missed);
       if (_miss >= kMaxMiss) {
         _failLevel();
         return;
@@ -223,9 +227,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
         .clamp(0, kLevelDurationSeconds)
         .toInt();
     if (left != _timeLeft) {
-      setState(() {
-        _timeLeft = left;
-      });
+      setState(() => _timeLeft = left);
     }
 
     // 시간이 끝났다는 것은 미스가 kMaxMiss 미만이라는 뜻 -> 단계 클리어
@@ -244,7 +246,9 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
       if (_levelIndex + 1 > _maxLevelCleared) {
         _maxLevelCleared = _levelIndex + 1;
       }
-      _status = _levelIndex == kLevels.length - 1 ? _GameStatus.allCleared : _GameStatus.levelCleared;
+      _status = _levelIndex == kLevels.length - 1
+          ? _GameStatus.allCleared
+          : _GameStatus.levelCleared;
     });
 
     unawaited(saveBestScore());
@@ -254,9 +258,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
   void _failLevel() {
     cancelAllTimers();
     stopBgm(); // 실패 다이얼로그에서도 음악 정지
-    setState(() {
-      _status = _GameStatus.levelFailed;
-    });
+    setState(() => _status = _GameStatus.levelFailed);
   }
 
   /// 풍선 생성 (프레임 루프 안에서 호출되므로 setState를 쓰지 않는다)
@@ -275,7 +277,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
         x: _random.nextDouble(), // 0.0~1.0
         y: _screenSize.height, // 화면 아래에서 시작
         size: size,
-        color: balloonColors[_random.nextInt(balloonColors.length)],
+        color: AppConst.balloonColors[_random.nextInt(AppConst.balloonColors.length)],
         speed: speed,
       ),
     );
@@ -293,9 +295,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
     }
   }
 
-  void _retryLevel() {
-    _startLevel(_levelIndex);
-  }
+  void _retryLevel() => _startLevel(_levelIndex);
 
   // ───────── UI ─────────
 
@@ -308,16 +308,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
         body: LayoutBuilder(
           builder: (context, constraints) {
             _screenSize = Size(constraints.maxWidth, constraints.maxHeight);
-            return Container(
-              width: constraints.maxWidth,
-              height: constraints.maxHeight,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF87CEEB), Color(0xFFE0F7FA)],
-                ),
-              ),
+            return GameBackground(
               child: Stack(
                 children: [
                   // 풍선 레이어: _frameNotifier가 알릴 때만 이 부분만 다시 빌드된다.
@@ -334,7 +325,16 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
                     ),
                   ),
                   _buildTopBar(),
-                  if (_status == _GameStatus.ready) _buildStartOverlay(),
+                  if (_status == _GameStatus.ready)
+                    StartOverlay(
+                      message: l10n.game01ScreenStartMessage(
+                        kLevels.length,
+                        kLevelDurationSeconds,
+                        kMaxMiss,
+                      ),
+                      buttonLabel: l10n.game01ScreenStartButton,
+                      onStart: () => _startLevel(0),
+                    ),
                   if (_status == _GameStatus.levelCleared) _buildLevelClearOverlay(),
                   if (_status == _GameStatus.levelFailed) _buildLevelFailedOverlay(),
                   if (_status == _GameStatus.allCleared) _buildAllClearedOverlay(),
@@ -348,8 +348,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
   }
 
   Widget _buildBalloon(Balloon b) {
-    final double maxLeft =
-    (_screenSize.width - b.size).clamp(0, double.infinity);
+    final double maxLeft = (_screenSize.width - b.size).clamp(0, double.infinity);
     final double left = b.x * maxLeft;
 
     return Positioned(
@@ -361,9 +360,13 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
         onTap: () => _popBalloon(b),
         child: Padding(
           padding: const EdgeInsets.all(touchPadding),
-          child: _BalloonWidget(
-            size: b.size,
-            color: b.color,
+          // RepaintBoundary: 풍선이 움직일 때 위치만 옮기고 다시 그리지 않는다.
+          child: RepaintBoundary(
+            child: SizedBox(
+              width: b.size,
+              height: b.size * 1.3,
+              child: CustomPaint(painter: BalloonPainter(color: b.color)),
+            ),
           ),
         ),
       ),
@@ -371,105 +374,39 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
   }
 
   Widget _buildTopBar() {
-    final LevelConfig config = kLevels[_levelIndex];
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            buildPauseButton(),
-
-            // 오른쪽: 정보 칩 3개 (단계 / 미스 / 남은 시간)
-            Row(
-              children: [
-                InfoChip(
-                  icon: Icons.flag,
-                  value: '${config.level}',
-                  unit: '/${kLevels.length}',
-                  width: 90,
-                ),
-                const SizedBox(width: 8),
-                InfoChip(
-                  icon: Icons.heart_broken,
-                  value: '$_miss',
-                  unit: '/$kMaxMiss',
-                  width: 95,
-                ),
-                const SizedBox(width: 8),
-                InfoChip(
-                  icon: Icons.timer,
-                  value: '$_timeLeft',
-                  unit: l10n.game01ScreenSecondUnit,
-                  width: 90,
-                ),
-              ],
-            ),
-          ],
+    return GameTopBar(
+      pauseButton: buildPauseButton(),
+      chips: [
+        InfoChip(
+          icon: Icons.flag,
+          value: '${_currentLevel.level}',
+          unit: '/${kLevels.length}',
+          width: 90,
         ),
-      ),
+        InfoChip(
+          icon: Icons.heart_broken,
+          value: '$_miss',
+          unit: '/$kMaxMiss',
+          width: 95,
+        ),
+        InfoChip(
+          icon: Icons.timer,
+          value: '$_timeLeft',
+          unit: l10n.game01ScreenSecondUnit,
+          width: 90,
+        ),
+      ],
     );
   }
 
-  Widget _buildStartOverlay() {
-    return Container(
-      color: Colors.black.withValues(alpha: 0.4),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Text(
-                l10n.game01ScreenStartMessage(
-                  kLevels.length,
-                  kLevelDurationSeconds,
-                  kMaxMiss,
-                ),
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => _startLevel(0),
-                style: ElevatedButton.styleFrom(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                  backgroundColor: Colors.orange,
-                ),
-                child: Text(
-                  l10n.game01ScreenStartButton,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // ───────── 결과 다이얼로그 (클리어 = 긍정 / 실패 = 부정) ─────────
 
   Widget _buildLevelClearOverlay() {
-    final LevelConfig cleared = kLevels[_levelIndex];
-
     return buildDialogCard(
-      title: l10n.game01ScreenLevelClearedTitle(cleared.level),
-      message: l10n.game01ScreenLevelClearedMessage(
-        kLevelDurationSeconds,
-        _miss,
-      ),
-      titleColor: Colors.green,
-      onPrimaryAction: _goToNextLevel,
+      title: l10n.game01ScreenLevelClearedTitle(_currentLevel.level),
+      message: l10n.game01ScreenLevelClearedMessage(kLevelDurationSeconds, _miss),
       primaryLabel: l10n.game01ScreenNextLevelButton,
-      primaryColor: Colors.blue,
+      onPrimaryAction: _goToNextLevel,
     );
   }
 
@@ -477,10 +414,8 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
     return buildDialogCard(
       title: l10n.game01ScreenGameOverTitle,
       message: l10n.game01ScreenGameOverMessage(kMaxMiss),
-      titleColor: Colors.redAccent,
-      onPrimaryAction: _retryLevel,
       primaryLabel: l10n.game01ScreenRetryButton,
-      primaryColor: Colors.orange,
+      onPrimaryAction: _retryLevel,
     );
   }
 
@@ -488,32 +423,9 @@ class _Game01ScreenState extends BaseGameState<Game01Screen> with SingleTickerPr
     return buildDialogCard(
       title: l10n.game01ScreenAllClearedTitle,
       message: l10n.game01ScreenAllClearedMessage(kLevels.length),
-      titleColor: Colors.deepOrange,
-      onPrimaryAction: () => Navigator.of(context).maybePop(),
       primaryLabel: l10n.game01ScreenConfirmButton,
-      primaryColor: Colors.blue,
+      onPrimaryAction: () => Navigator.of(context).maybePop(),
       showQuitButton: false,
-    );
-  }
-}
-
-class _BalloonWidget extends StatelessWidget {
-  final double size;
-  final Color color;
-
-  const _BalloonWidget({required this.size, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    // RepaintBoundary: 풍선이 움직일 때 위치만 옮기고 다시 그리지 않는다.
-    return RepaintBoundary(
-      child: SizedBox(
-        width: size,
-        height: size * 1.3,
-        child: CustomPaint(
-          painter: BalloonPainter(color: color),
-        ),
-      ),
     );
   }
 }

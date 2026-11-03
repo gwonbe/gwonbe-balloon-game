@@ -1,9 +1,15 @@
 import 'dart:async';
 import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/utils/app_bgm.dart';
+import 'package:balloon_game/utils/app_const.dart';
 import 'package:balloon_game/utils/bgm_player.dart';
 import 'package:balloon_game/utils/game_storage.dart';
+import 'package:balloon_game/widgets/balloon_painter.dart';
 import 'package:flutter/material.dart';
+
+// ════════════════════════════════════════════════════════════════
+// 게임 화면 공통 State
+// ════════════════════════════════════════════════════════════════
 
 /// 게임 화면 공통 부모 State.
 /// - BGM 재생/정지/일시정지/재개/해제
@@ -19,18 +25,6 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   /// dispose 이후에도 안전하게 광고창을 띄우기 위해 Navigator를 미리 잡아둔다.
   NavigatorState? _navigator;
 
-  final List<Color> balloonColors = [
-    Colors.red,
-    Colors.pink,
-    Colors.orange,
-    Colors.amber,
-    Colors.green,
-    Colors.teal,
-    Colors.blue,
-    Colors.indigo,
-    Colors.purple,
-  ];
-
   /// 일시정지 중인지 여부 (일시정지 확인창이 떠 있는 동안 true)
   bool get isPaused => _isPaused;
 
@@ -39,7 +33,7 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   /// 최고 기록 저장용 SharedPreferences 키
   String get bestScoreKey;
 
-  /// 이 게임에서 전달할 현재 기록 (game01: 최고 도달 단계, game02: 정답 개수)
+  /// 이 게임에서 전달할 현재 기록
   int get currentScore;
 
   /// 지금 게임이 진행 중인가? (일시정지 가능한 상태인가)
@@ -82,30 +76,17 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
 
     final l10n = AppLocalizations.of(navigator.context)!;
 
-    await showDialog<void>(
+    await GameDialog.show<void>(
       context: navigator.context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+      title: l10n.baseGameStateAdTimeTitle,
+      message: l10n.baseGameStateAdTimeMessage,
+      buttonsBuilder: (ctx) => [
+        GameDialogButton(
+          label: l10n.baseGameStateConfirmButton,
+          isPrimary: true,
+          onPressed: () => Navigator.of(ctx).pop(),
         ),
-        title: Text(
-          l10n.baseGameStateAdTimeTitle,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          l10n.baseGameStateAdTimeMessage,
-          textAlign: TextAlign.center,
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.baseGameStateConfirmButton),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -165,39 +146,22 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
 
     final l10n = AppLocalizations.of(navigator.context)!;
 
-    final bool? quit = await showDialog<bool>(
+    // 계속하기가 유도 버튼(메인 색), 게임 중단은 흰색 버튼.
+    final bool? quit = await GameDialog.show<bool>(
       context: navigator.context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+      title: l10n.baseGameStatePauseTitle,
+      message: l10n.baseGameStatePauseMessage,
+      buttonsBuilder: (ctx) => [
+        GameDialogButton(
+          label: l10n.baseGameStateQuitButton,
+          onPressed: () => Navigator.of(ctx).pop(true),
         ),
-        title: Text(
-          l10n.baseGameStatePauseTitle,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+        GameDialogButton(
+          label: l10n.baseGameStateContinueButton,
+          isPrimary: true,
+          onPressed: () => Navigator.of(ctx).pop(false),
         ),
-        content: Text(
-          l10n.baseGameStatePauseMessage,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 16),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.baseGameStateQuitButton),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-            ),
-            child: Text(l10n.baseGameStateContinueButton),
-          ),
-        ],
-      ),
+      ],
     );
 
     _isDialogOpen = false;
@@ -265,74 +229,308 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     );
   }
 
+  /// 게임 화면 위에 띄우는 결과 다이얼로그.
+  /// 배경은 항상 흰색/글자는 검은색이고, [primaryLabel] 버튼만 메인 색으로 채운다.
   /// [showQuitButton]이 false면 '게임 중단' 버튼 없이 확인 버튼 하나만 보여준다.
   Widget buildDialogCard({
     required String title,
     required String message,
-    required Color titleColor,
-    required VoidCallback onPrimaryAction,
     required String primaryLabel,
-    required Color primaryColor,
+    required VoidCallback onPrimaryAction,
     bool showQuitButton = true,
   }) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Container(
-      color: Colors.black.withValues(alpha: 0.5),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.all(28),
-          margin: const EdgeInsets.symmetric(horizontal: 40),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+    return GameDialogOverlay(
+      title: title,
+      message: message,
+      buttons: [
+        if (showQuitButton)
+          GameDialogButton(
+            label: l10n.baseGameStateQuitButton,
+            onPressed: () => Navigator.of(context).maybePop(),
           ),
+        GameDialogButton(
+          label: primaryLabel,
+          isPrimary: true,
+          onPressed: onPrimaryAction,
+        ),
+      ],
+    );
+  }
+
+  Future<void> saveBestScore() async {
+    await GameStorage.saveBestScoreIfHigher(bestScoreKey, currentScore);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 공용 다이얼로그
+// ════════════════════════════════════════════════════════════════
+
+class GameDialogButton {
+  final String label;
+  final VoidCallback onPressed;
+
+  /// true: 사용자가 눌렀으면 하는 버튼 (메인 색으로 채움)
+  /// false: 그 외 버튼 (흰색 배경 + 테두리)
+  final bool isPrimary;
+
+  const GameDialogButton({
+    required this.label,
+    required this.onPressed,
+    this.isPrimary = false,
+  });
+}
+
+/// 앱 공용 다이얼로그 카드. 배경은 흰색, 글자는 검은색.
+class GameDialog extends StatelessWidget {
+  final String title;
+  final String message;
+  final List<GameDialogButton> buttons;
+
+  const GameDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.buttons,
+  });
+
+  /// showDialog로 띄우는 형태 (일시정지, 광고 등)
+  static Future<T?> show<T>({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required List<GameDialogButton> Function(BuildContext dialogContext) buttonsBuilder,
+  }) {
+    return showDialog<T>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: GameDialog(
+          title: title,
+          message: message,
+          buttons: buttonsBuilder(ctx),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: AppConst.dialogBackground,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: AppConst.dialogText,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16, color: AppConst.dialogText),
+          ),
+          const SizedBox(height: 20),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
+            children: [for (final b in buttons) _buildButton(b)],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildButton(GameDialogButton b) {
+    const padding = EdgeInsets.symmetric(horizontal: 24, vertical: 12);
+    const textStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
+
+    if (b.isPrimary) {
+      return ElevatedButton(
+        onPressed: b.onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppConst.dialogPrimaryButton,
+          foregroundColor: AppConst.dialogPrimaryButtonText,
+          padding: padding,
+        ),
+        child: Text(b.label, style: textStyle),
+      );
+    }
+
+    return OutlinedButton(
+      onPressed: b.onPressed,
+      style: OutlinedButton.styleFrom(
+        backgroundColor: AppConst.dialogSecondaryButton,
+        foregroundColor: AppConst.dialogSecondaryButtonText,
+        side: const BorderSide(color: AppConst.dialogSecondaryButtonBorder, width: 1.5),
+        padding: padding,
+      ),
+      child: Text(b.label, style: textStyle),
+    );
+  }
+}
+
+/// 게임 화면 위에 어두운 배경과 함께 [GameDialog]를 가운데 띄우는 오버레이.
+class GameDialogOverlay extends StatelessWidget {
+  final String title;
+  final String message;
+  final List<GameDialogButton> buttons;
+
+  const GameDialogOverlay({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.buttons,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppConst.dialogScrim,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: GameDialog(
+            title: title,
+            message: message,
+            buttons: buttons,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 공용 게임 화면 위젯
+// ════════════════════════════════════════════════════════════════
+
+/// 모든 게임 화면 공통 하늘색 그라데이션 배경
+class GameBackground extends StatelessWidget {
+  final Widget child;
+
+  const GameBackground({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [AppConst.skyTop, AppConst.skyBottom],
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// 게임 화면 상단 바: 왼쪽 일시정지 버튼, 오른쪽 정보 칩들, (선택) 아래에 문제판
+class GameTopBar extends StatelessWidget {
+  final Widget pauseButton;
+  final List<Widget> chips;
+  final Widget? bottom;
+
+  const GameTopBar({
+    super.key,
+    required this.pauseButton,
+    required this.chips,
+    this.bottom,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> spacedChips = [];
+    for (int i = 0; i < chips.length; i++) {
+      if (i > 0) spacedChips.add(const SizedBox(width: 8));
+      spacedChips.add(chips[i]);
+    }
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                pauseButton,
+                Row(children: spacedChips),
+              ],
+            ),
+            if (bottom != null) ...[
+              const SizedBox(height: 14),
+              bottom!,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 게임 시작 전 안내 + 시작 버튼
+class StartOverlay extends StatelessWidget {
+  final String message;
+  final String buttonLabel;
+  final VoidCallback onStart;
+
+  const StartOverlay({
+    super.key,
+    required this.message,
+    required this.buttonLabel,
+    required this.onStart,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.4),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                title,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: titleColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
                 message,
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                style: const TextStyle(fontSize: 16, color: Colors.white),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (showQuitButton) ...[
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                      ),
-                      child: Text(l10n.baseGameStateQuitButton),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                  ElevatedButton(
-                    onPressed: onPrimaryAction,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      backgroundColor: primaryColor,
-                    ),
-                    child: Text(
-                      primaryLabel,
-                      style: const TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: onStart,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  backgroundColor: AppConst.mainColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(
+                  buttonLabel,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -340,8 +538,86 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
       ),
     );
   }
+}
 
-  Future<void> saveBestScore() async {
-    await GameStorage.saveBestScoreIfHigher(bestScoreKey, currentScore);
+/// 딩동댕! / 땡! 메시지
+class FeedbackOverlay extends StatelessWidget {
+  final String text;
+  final bool correct;
+
+  const FeedbackOverlay({super.key, required this.text, required this.correct});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = correct ? AppConst.feedbackCorrect : AppConst.feedbackWrong;
+
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 숫자/기호 텍스트가 표시된 풍선
+class LabeledBalloon extends StatelessWidget {
+  final double size;
+  final Color color;
+  final String label;
+
+  const LabeledBalloon({
+    super.key,
+    required this.size,
+    required this.color,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size * 1.3,
+      child: Stack(
+        children: [
+          CustomPaint(
+            size: Size(size, size * 1.3),
+            painter: BalloonPainter(color: color),
+          ),
+          Align(
+            alignment: const Alignment(0, -0.35),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: size * 0.34,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                shadows: const [
+                  Shadow(color: Colors.black38, blurRadius: 3, offset: Offset(0, 1)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

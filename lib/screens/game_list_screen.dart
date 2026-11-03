@@ -2,6 +2,7 @@ import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/screens/game01_screen.dart';
 import 'package:balloon_game/screens/game02_screen.dart';
 import 'package:balloon_game/screens/game03_screen.dart';
+import 'package:balloon_game/utils/app_const.dart';
 import 'package:balloon_game/utils/game_storage.dart';
 import 'package:balloon_game/widgets/app_version_text.dart';
 import 'package:flutter/material.dart';
@@ -10,17 +11,23 @@ class GameItem {
   final String title;
   final String description;
   final IconData icon;
+  final Color color;
+  final Color backgroundColor;
   final WidgetBuilder builder;
   final String bestScoreKey;
-  final int gameNumber;
+
+  /// 최고 기록(0 초과)을 받아 목록에 보여줄 문구를 만든다.
+  final String Function(int best) bestTextBuilder;
 
   const GameItem({
     required this.title,
     required this.description,
     required this.icon,
+    required this.color,
+    required this.backgroundColor,
     required this.builder,
     required this.bestScoreKey,
-    required this.gameNumber,
+    required this.bestTextBuilder,
   });
 }
 
@@ -32,8 +39,6 @@ class GameListScreen extends StatefulWidget {
 }
 
 class _GameListScreenState extends State<GameListScreen> {
-  late List<GameItem> _games;
-
   /// 게임별 최고 기록 (key: SharedPreferences 키)
   final Map<String, int> _bestScores = {};
 
@@ -70,90 +75,63 @@ class _GameListScreenState extends State<GameListScreen> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    _games = [
+  List<GameItem> _buildGames(AppLocalizations l10n) {
+    return [
       GameItem(
         title: l10n.game01Title,
         description: l10n.game01Description,
         icon: Icons.bubble_chart,
+        color: AppConst.game01Color,
+        backgroundColor: AppConst.game01Background,
         builder: (context) => const Game01Screen(),
         bestScoreKey: GameStorage.bestScoreGame01,
-        gameNumber: 1,
+        bestTextBuilder: (best) => l10n.game01BestScore(best, 0),
       ),
       GameItem(
         title: l10n.game02Title,
         description: l10n.game02Description,
         icon: Icons.close,
+        color: AppConst.game02Color,
+        backgroundColor: AppConst.game02Background,
         builder: (context) => const Game02Screen(),
         bestScoreKey: GameStorage.bestScoreGame02,
-        gameNumber: 2,
+        bestTextBuilder: (best) => l10n.game02BestScore(best),
       ),
       GameItem(
         title: l10n.game03Title,
         description: l10n.game03Description,
         icon: Icons.calculate,
+        color: AppConst.game03Color,
+        backgroundColor: AppConst.game03Background,
         builder: (context) => const Game03Screen(),
         bestScoreKey: GameStorage.bestScoreGame03,
-        gameNumber: 3,
+        bestTextBuilder: (best) => l10n.game03BestScore(best),
       ),
     ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final List<GameItem> games = _buildGames(l10n);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.gameListScreenTitle),
-      ),
+      appBar: AppBar(title: Text(l10n.gameListScreenTitle)),
       body: Stack(
         children: [
           ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
-            itemCount: _games.length,
+            itemCount: games.length,
             separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              final game = _games[index];
+              final game = games[index];
               final int best = _bestScores[game.bestScoreKey] ?? 0;
-
-              final String title;
-              final String description;
-
-              switch (game.gameNumber) {
-                case 1:
-                  title = l10n.game01Title;
-                  description = l10n.game01Description;
-                  break;
-                case 2:
-                  title = l10n.game02Title;
-                  description = l10n.game02Description;
-                  break;
-                default:
-                  title = l10n.game03Title;
-                  description = l10n.game03Description;
-              }
-
-              final String bestText;
-
-              if (best == 0) {
-                bestText = l10n.gameListScreenNoRecord;
-              } else {
-                switch (game.gameNumber) {
-                  case 1:
-                    bestText = l10n.game01BestScore(best, 0);
-                    break;
-                  case 2:
-                    bestText = l10n.game02BestScore(best);
-                    break;
-                  default:
-                    bestText = l10n.game03BestScore(best);
-                }
-              }
 
               return _GameCard(
                 game: game,
-                title: title,
-                description: description,
-                bestText: bestText,
+                bestText: best == 0
+                    ? l10n.gameListScreenNoRecord
+                    : game.bestTextBuilder(best),
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: game.builder),
@@ -177,44 +155,18 @@ class _GameListScreenState extends State<GameListScreen> {
 /// 게임 목록의 카드 한 칸. 높이가 고정이라 모든 카드의 크기가 같다.
 class _GameCard extends StatelessWidget {
   final GameItem game;
-  final String title;
-  final String description;
   final String bestText;
   final VoidCallback onTap;
 
   const _GameCard({
     required this.game,
-    required this.title,
-    required this.description,
     required this.bestText,
     required this.onTap,
   });
 
-  Color get _accentColor {
-    switch (game.gameNumber) {
-      case 1:
-        return const Color(0xFF4A9FE8);
-      case 2:
-        return const Color(0xFF9270DB);
-      default:
-        return const Color(0xFF45AD87);
-    }
-  }
-
-  Color get _backgroundColor {
-    switch (game.gameNumber) {
-      case 1:
-        return const Color(0xFFF1F8FF);
-      case 2:
-        return const Color(0xFFF7F3FF);
-      default:
-        return const Color(0xFFF0FAF5);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final color = _accentColor;
+    final Color color = game.color;
 
     return SizedBox(
       height: 130,
@@ -222,7 +174,7 @@ class _GameCard extends StatelessWidget {
         margin: EdgeInsets.zero,
         elevation: 2,
         shadowColor: color.withValues(alpha: 0.12),
-        color: _backgroundColor,
+        color: game.backgroundColor,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: InkWell(
@@ -238,7 +190,10 @@ class _GameCard extends StatelessWidget {
                       Container(
                         width: 46,
                         height: 46,
-                        decoration: BoxDecoration(color: color.withValues(alpha: 0.13), borderRadius: BorderRadius.circular(15)),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.13),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                         child: Icon(game.icon, color: color, size: 25),
                       ),
                       const SizedBox(width: 12),
@@ -248,17 +203,25 @@ class _GameCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              title,
+                              game.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF263448)),
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: AppConst.cardTitleColor,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             ConstrainedBox(
                               constraints: const BoxConstraints(minHeight: 36),
                               child: Text(
-                                description,
-                                style: TextStyle(fontSize: 13, height: 1.4, color: Colors.blueGrey.shade700),
+                                game.description,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  height: 1.4,
+                                  color: Colors.blueGrey.shade700,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 5),
@@ -271,7 +234,11 @@ class _GameCard extends StatelessWidget {
                                     bestText,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: color,
+                                    ),
                                   ),
                                 ),
                               ],
