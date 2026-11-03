@@ -151,7 +151,8 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   late AppLocalizations l10n;
   final Random _random = Random();
 
-  Timer? _gameTimer; // 1초마다 남은 시간 감소
+  Timer? _gameTimer;
+  final Stopwatch _gameStopwatch = Stopwatch();
   Timer? _feedbackTimer; // 정답/오답 메시지 자동으로 사라지게
   Timer? _nextRoundTimer; // 다음 문제로 넘어가기 전 짧은 대기
 
@@ -194,16 +195,26 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     _gameTimer?.cancel();
     _feedbackTimer?.cancel();
     _nextRoundTimer?.cancel();
+    _gameStopwatch.stop();
   }
 
   @override
   void startTimers() {
+    _gameStopwatch.start();
     _gameTimer?.cancel();
-    _gameTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      // 일시정지 중이거나 플레이 중이 아니면 카운트하지 않음
+    _gameTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
       if (_status != _GameStatus.playing || isPaused) return;
-      setState(() => _timeLeft--);
-      if (_timeLeft <= 0) _endGame();
+
+      final int remainingMilliseconds = _kGameDuration * 1000 - _gameStopwatch.elapsedMilliseconds;
+      if (remainingMilliseconds <= 0) {
+        _endGame();
+        return;
+      }
+
+      final int remainingSeconds = (remainingMilliseconds / 1000).ceil();
+      if (remainingSeconds != _timeLeft) {
+        setState(() => _timeLeft = remainingSeconds);
+      }
     });
   }
 
@@ -228,6 +239,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   void _startGame() {
     cancelAllTimers();
     registerGameStart();
+    _gameStopwatch.reset();
 
     setState(() {
       _prepareNextRound();
@@ -246,6 +258,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     stopBgm();
 
     setState(() {
+      _timeLeft = 0;
       _status = _GameStatus.gameOver;
       _feedbackText = null;
       _pendingNext = false;
