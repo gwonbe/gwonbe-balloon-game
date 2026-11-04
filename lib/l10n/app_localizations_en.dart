@@ -181,4 +181,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get game03ScreenConfirmButton => 'OK';
+
+  @override
+  String get game04Title => 'Speed Challenge';
+
+  @override
+  String get game04Description => 'Pop 100 balloons as fast as you can!';
+
+  @override
+  String game04BestTime(String time) {
+    return 'Best time: ${time}s';
+  }
+
+  @override
+  String get game04ScreenBalloonsUnit => 'popped';
+
+  @override
+  String get game04ScreenSecondsUnit => 'sec';
+
+  @override
+  String get game04ScreenColorRule => 'Pop this color';
+
+  @override
+  String get game04ScreenLetterRule => 'Pop this letter';
+
+  @override
+  String get game04ScreenStartMessage =>
+      'Pop all 100 balloons as fast as you can!\nThe target changes every 10 balloons.';
+
+  @override
+  String get game04ScreenStartButton => 'Start Game';
+
+  @override
+  String get game04ScreenCompleteTitle => 'Speed Challenge Complete! 🎉';
+
+  @override
+  String game04ScreenCompleteMessage(String time) {
+    return 'Time: ${time}s';
+  }
+
+  @override
+  String get game04ScreenReplayButton => 'Play Again';
+
+  @override
+  String get game04ScreenRuleChangeFeedback => 'Rule Change!';
 }

@@ -397,6 +397,84 @@ abstract class AppLocalizations {
   /// In ko, this message translates to:
   /// **'확인'**
   String get game03ScreenConfirmButton;
+
+  /// No description provided for @game04Title.
+  ///
+  /// In ko, this message translates to:
+  /// **'스피드 챌린지'**
+  String get game04Title;
+
+  /// No description provided for @game04Description.
+  ///
+  /// In ko, this message translates to:
+  /// **'조건에 맞는 풍선 100개를 빠르게 터뜨리세요!'**
+  String get game04Description;
+
+  /// No description provided for @game04BestTime.
+  ///
+  /// In ko, this message translates to:
+  /// **'최고 기록: {time}초'**
+  String game04BestTime(String time);
+
+  /// No description provided for @game04ScreenBalloonsUnit.
+  ///
+  /// In ko, this message translates to:
+  /// **'개'**
+  String get game04ScreenBalloonsUnit;
+
+  /// No description provided for @game04ScreenSecondsUnit.
+  ///
+  /// In ko, this message translates to:
+  /// **'초'**
+  String get game04ScreenSecondsUnit;
+
+  /// No description provided for @game04ScreenColorRule.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 색 풍선을 터뜨려요'**
+  String get game04ScreenColorRule;
+
+  /// No description provided for @game04ScreenLetterRule.
+  ///
+  /// In ko, this message translates to:
+  /// **'이 알파벳 풍선을 터뜨려요'**
+  String get game04ScreenLetterRule;
+
+  /// No description provided for @game04ScreenStartMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'풍선 100개를 최대한 빠르게 터뜨리세요!\n10개를 터뜨릴 때마다 목표 조건이 바뀝니다.'**
+  String get game04ScreenStartMessage;
+
+  /// No description provided for @game04ScreenStartButton.
+  ///
+  /// In ko, this message translates to:
+  /// **'게임 시작'**
+  String get game04ScreenStartButton;
+
+  /// No description provided for @game04ScreenCompleteTitle.
+  ///
+  /// In ko, this message translates to:
+  /// **'스피드 챌린지 완료! 🎉'**
+  String get game04ScreenCompleteTitle;
+
+  /// No description provided for @game04ScreenCompleteMessage.
+  ///
+  /// In ko, this message translates to:
+  /// **'걸린 시간: {time}초'**
+  String game04ScreenCompleteMessage(String time);
+
+  /// No description provided for @game04ScreenReplayButton.
+  ///
+  /// In ko, this message translates to:
+  /// **'다시하기'**
+  String get game04ScreenReplayButton;
+
+  /// No description provided for @game04ScreenRuleChangeFeedback.
+  ///
+  /// In ko, this message translates to:
+  /// **'룰 체인지!'**
+  String get game04ScreenRuleChangeFeedback;
 }
 
 class _AppLocalizationsDelegate

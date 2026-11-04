@@ -177,4 +177,48 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get game03ScreenConfirmButton => '확인';
+
+  @override
+  String get game04Title => '스피드 챌린지';
+
+  @override
+  String get game04Description => '조건에 맞는 풍선 100개를 빠르게 터뜨리세요!';
+
+  @override
+  String game04BestTime(String time) {
+    return '최고 기록: $time초';
+  }
+
+  @override
+  String get game04ScreenBalloonsUnit => '개';
+
+  @override
+  String get game04ScreenSecondsUnit => '초';
+
+  @override
+  String get game04ScreenColorRule => '이 색 풍선을 터뜨려요';
+
+  @override
+  String get game04ScreenLetterRule => '이 알파벳 풍선을 터뜨려요';
+
+  @override
+  String get game04ScreenStartMessage =>
+      '풍선 100개를 최대한 빠르게 터뜨리세요!\n10개를 터뜨릴 때마다 목표 조건이 바뀝니다.';
+
+  @override
+  String get game04ScreenStartButton => '게임 시작';
+
+  @override
+  String get game04ScreenCompleteTitle => '스피드 챌린지 완료! 🎉';
+
+  @override
+  String game04ScreenCompleteMessage(String time) {
+    return '걸린 시간: $time초';
+  }
+
+  @override
+  String get game04ScreenReplayButton => '다시하기';
+
+  @override
+  String get game04ScreenRuleChangeFeedback => '룰 체인지!';
 }

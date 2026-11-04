@@ -31,6 +31,8 @@ class AppConst {
   static const Color game02Background = Color(0xFFEEF6FD);
   static const Color game03Color = Color(0xFF86489D); // 보라
   static const Color game03Background = Color(0xFFF7F0FA);
+  static const Color game04Color = Color(0xFF008C82);
+  static const Color game04Background = Color(0xFFE9F8F6);
   static const Color cardTitleColor = Color(0xFF263448);
 
   // ───────── 정보 칩 ─────────

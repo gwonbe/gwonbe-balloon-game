@@ -9,6 +9,7 @@ class GameStorage {
   static const String bestScoreGame01 = 'bestScoreGame01';
   static const String bestScoreGame02 = 'bestScoreGame02';
   static const String bestScoreGame03 = 'bestScoreGame03';
+  static const String bestScoreGame04 = 'bestScoreGame04';
 
   /// 최고 기록이 저장될 때마다 값이 바뀐다. 목록 화면이 이를 듣고 다시 읽는다.
   static final ValueNotifier<int> bestScoreChanged = ValueNotifier<int>(0);
@@ -38,6 +39,17 @@ class GameStorage {
   static Future<int> getBestScore(String key) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(key) ?? 0;
+  }
+
+  /// 완료 시간(밀리초)이 기존 기록보다 짧을 때만 저장한다. 첫 기록도 저장한다.
+  static Future<bool> saveBestTimeIfLower(String key, int milliseconds) async {
+    if (milliseconds <= 0) return false;
+    final prefs = await SharedPreferences.getInstance();
+    final int best = prefs.getInt(key) ?? 0;
+    if (best > 0 && milliseconds >= best) return false;
+    await prefs.setInt(key, milliseconds);
+    bestScoreChanged.value++;
+    return true;
   }
 
   /// 기존 최고 기록보다 높을 때만 덮어쓴다. 갱신했으면 true.

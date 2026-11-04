@@ -2,6 +2,7 @@ import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/screens/game01_screen.dart';
 import 'package:balloon_game/screens/game02_screen.dart';
 import 'package:balloon_game/screens/game03_screen.dart';
+import 'package:balloon_game/screens/game04_screen.dart';
 import 'package:balloon_game/utils/app_const.dart';
 import 'package:balloon_game/utils/game_storage.dart';
 import 'package:balloon_game/widgets/app_version_text.dart';
@@ -60,10 +61,13 @@ class _GameListScreenState extends State<GameListScreen> {
       GameStorage.bestScoreGame01,
       GameStorage.bestScoreGame02,
       GameStorage.bestScoreGame03,
+      GameStorage.bestScoreGame04,
     ];
 
     final scores = await Future.wait(
-      keys.map((key) async => MapEntry(key, await GameStorage.getBestScore(key))),
+      keys.map(
+        (key) async => MapEntry(key, await GameStorage.getBestScore(key)),
+      ),
     );
 
     if (!mounted) return;
@@ -107,6 +111,17 @@ class _GameListScreenState extends State<GameListScreen> {
         bestScoreKey: GameStorage.bestScoreGame03,
         bestTextBuilder: (best) => l10n.game03BestScore(best),
       ),
+      GameItem(
+        title: l10n.game04Title,
+        description: l10n.game04Description,
+        icon: Icons.bolt_rounded,
+        color: AppConst.game04Color,
+        backgroundColor: AppConst.game04Background,
+        builder: (context) => const Game04Screen(),
+        bestScoreKey: GameStorage.bestScoreGame04,
+        bestTextBuilder: (best) =>
+            l10n.game04BestTime((best / 1000).toStringAsFixed(2)),
+      ),
     ];
   }
 
@@ -133,9 +148,9 @@ class _GameListScreenState extends State<GameListScreen> {
                     ? l10n.gameListScreenNoRecord
                     : game.bestTextBuilder(best),
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: game.builder),
-                  );
+                  Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: game.builder));
                 },
               );
             },
@@ -167,7 +182,11 @@ class _GameCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color color = game.color;
-    final Color softColor = Color.lerp(game.backgroundColor, Colors.white, 0.42)!;
+    final Color softColor = Color.lerp(
+      game.backgroundColor,
+      Colors.white,
+      0.42,
+    )!;
 
     return Container(
       height: 148,
