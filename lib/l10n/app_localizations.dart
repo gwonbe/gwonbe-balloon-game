@@ -100,380 +100,380 @@ abstract class AppLocalizations {
 
   /// No description provided for @homeScreenTapToStart.
   ///
-  /// In ko, this message translates to:
-  /// **'터치하세요!'**
+  /// In en, this message translates to:
+  /// **'Tap to Start!'**
   String get homeScreenTapToStart;
 
   /// No description provided for @gameListScreenTitle.
   ///
-  /// In ko, this message translates to:
-  /// **'게임 목록'**
+  /// In en, this message translates to:
+  /// **'Select a Game'**
   String get gameListScreenTitle;
 
   /// No description provided for @game01Title.
   ///
-  /// In ko, this message translates to:
-  /// **'둥실둥실'**
+  /// In en, this message translates to:
+  /// **'Floating Balloons'**
   String get game01Title;
 
   /// No description provided for @game01Description.
   ///
-  /// In ko, this message translates to:
-  /// **'풍선이 하늘로 올라가기 전에 터뜨리세요!'**
+  /// In en, this message translates to:
+  /// **'Pop the balloons before they float away!'**
   String get game01Description;
 
   /// No description provided for @game01BestScore.
   ///
-  /// In ko, this message translates to:
-  /// **'최고 기록 : {score} / {levelCount} 단계 클리어'**
+  /// In en, this message translates to:
+  /// **'Best Score: {score} / {levelCount} Levels Cleared'**
   String game01BestScore(int score, int levelCount);
 
   /// No description provided for @game02Title.
   ///
-  /// In ko, this message translates to:
-  /// **'구구단을 외자'**
+  /// In en, this message translates to:
+  /// **'Multiplication Challenge'**
   String get game02Title;
 
   /// No description provided for @game02Description.
   ///
-  /// In ko, this message translates to:
-  /// **'구구단 정답 풍선을 터뜨리세요!'**
+  /// In en, this message translates to:
+  /// **'Pop the balloons with the correct multiplication answers!'**
   String get game02Description;
 
   /// No description provided for @game02BestScore.
   ///
-  /// In ko, this message translates to:
-  /// **'최고 기록 : {score}개 정답'**
+  /// In en, this message translates to:
+  /// **'Best Score: {score} Correct Answers'**
   String game02BestScore(int score);
 
   /// No description provided for @game03Title.
   ///
-  /// In ko, this message translates to:
-  /// **'사칙연산'**
+  /// In en, this message translates to:
+  /// **'Arithmetic Challenge'**
   String get game03Title;
 
   /// No description provided for @game03Description.
   ///
-  /// In ko, this message translates to:
-  /// **'사칙연산 정답 풍선을 터뜨리세요!'**
+  /// In en, this message translates to:
+  /// **'Pop the balloons with the correct arithmetic answers!'**
   String get game03Description;
 
   /// No description provided for @game03BestScore.
   ///
-  /// In ko, this message translates to:
-  /// **'최고 기록 : {score}개 정답'**
+  /// In en, this message translates to:
+  /// **'Best Score: {score} Correct Answers'**
   String game03BestScore(int score);
 
   /// No description provided for @gameListScreenNoRecord.
   ///
-  /// In ko, this message translates to:
-  /// **'기록 없음'**
+  /// In en, this message translates to:
+  /// **'No Record'**
   String get gameListScreenNoRecord;
 
   /// No description provided for @baseGameStateAdTimeTitle.
   ///
-  /// In ko, this message translates to:
-  /// **'광고타임!'**
+  /// In en, this message translates to:
+  /// **'Ad Break!'**
   String get baseGameStateAdTimeTitle;
 
   /// No description provided for @baseGameStateAdTimeMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'확인 버튼을 눌러주세요.'**
+  /// In en, this message translates to:
+  /// **'Please press Confirm.'**
   String get baseGameStateAdTimeMessage;
 
   /// No description provided for @baseGameStateConfirmButton.
   ///
-  /// In ko, this message translates to:
-  /// **'확인'**
+  /// In en, this message translates to:
+  /// **'Confirm'**
   String get baseGameStateConfirmButton;
 
   /// No description provided for @baseGameStatePauseTitle.
   ///
-  /// In ko, this message translates to:
-  /// **'일시정지 ⏸️'**
+  /// In en, this message translates to:
+  /// **'Paused ⏸️'**
   String get baseGameStatePauseTitle;
 
   /// No description provided for @baseGameStatePauseMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'게임을 중단하시겠습니까?'**
+  /// In en, this message translates to:
+  /// **'Do you want to quit the game?'**
   String get baseGameStatePauseMessage;
 
   /// No description provided for @baseGameStateQuitButton.
   ///
-  /// In ko, this message translates to:
-  /// **'중단하기'**
+  /// In en, this message translates to:
+  /// **'Quit'**
   String get baseGameStateQuitButton;
 
   /// No description provided for @baseGameStateContinueButton.
   ///
-  /// In ko, this message translates to:
-  /// **'계속하기'**
+  /// In en, this message translates to:
+  /// **'Continue'**
   String get baseGameStateContinueButton;
 
   /// No description provided for @game01ScreenSecondUnit.
   ///
-  /// In ko, this message translates to:
-  /// **'초'**
+  /// In en, this message translates to:
+  /// **'sec'**
   String get game01ScreenSecondUnit;
 
   /// No description provided for @game01ScreenMissUnit.
   ///
-  /// In ko, this message translates to:
-  /// **'개'**
+  /// In en, this message translates to:
+  /// **''**
   String get game01ScreenMissUnit;
 
   /// No description provided for @game01ScreenStartMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'총 {levelCount}단계\n풍선을 {maxMiss}개 놓치면 게임이 끝나요!\n단계가 올라갈수록 풍선이 더 빨라져요!'**
+  /// In en, this message translates to:
+  /// **'Clear all {levelCount} levels!\nMissing {maxMiss} balloons ends the game!\nBalloons get faster as you progress!'**
   String game01ScreenStartMessage(int levelCount, int maxMiss);
 
   /// No description provided for @game01ScreenStartButton.
   ///
-  /// In ko, this message translates to:
-  /// **'게임 시작'**
+  /// In en, this message translates to:
+  /// **'Start Game'**
   String get game01ScreenStartButton;
 
   /// No description provided for @game01ScreenLevelClearedTitle.
   ///
-  /// In ko, this message translates to:
-  /// **'{level}단계 클리어! 🎉'**
+  /// In en, this message translates to:
+  /// **'Level {level} Cleared! 🎉'**
   String game01ScreenLevelClearedTitle(int level);
 
   /// No description provided for @game01ScreenLevelClearedMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'놓친 풍선: {miss}개\n다음 단계에 도전할까요?'**
+  /// In en, this message translates to:
+  /// **'Balloons missed: {miss}\nReady for the next level?'**
   String game01ScreenLevelClearedMessage(Object miss);
 
   /// No description provided for @game01ScreenNextLevelButton.
   ///
-  /// In ko, this message translates to:
-  /// **'다음 단계'**
+  /// In en, this message translates to:
+  /// **'Next Level'**
   String get game01ScreenNextLevelButton;
 
   /// No description provided for @game01ScreenGameOverTitle.
   ///
-  /// In ko, this message translates to:
-  /// **'게임 종료! 😢'**
+  /// In en, this message translates to:
+  /// **'Game Over! 😢'**
   String get game01ScreenGameOverTitle;
 
   /// No description provided for @game01ScreenGameOverMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'풍선을 {maxMiss}개 놓쳤어요!\n같은 단계부터 다시 도전해 보세요!'**
+  /// In en, this message translates to:
+  /// **'You missed {maxMiss} balloons!\nTry again from the same level!'**
   String game01ScreenGameOverMessage(int maxMiss);
 
   /// No description provided for @game01ScreenRetryButton.
   ///
-  /// In ko, this message translates to:
-  /// **'다시 시도'**
+  /// In en, this message translates to:
+  /// **'Try Again'**
   String get game01ScreenRetryButton;
 
   /// No description provided for @game01ScreenAllClearedTitle.
   ///
-  /// In ko, this message translates to:
-  /// **'전체 클리어! 🏆'**
+  /// In en, this message translates to:
+  /// **'All Levels Cleared! 🏆'**
   String get game01ScreenAllClearedTitle;
 
   /// No description provided for @game01ScreenAllClearedMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'{levelCount}개 단계를 모두 완료했어요!\n정말 대단해요!'**
+  /// In en, this message translates to:
+  /// **'You completed all {levelCount} levels!\nAmazing job!'**
   String game01ScreenAllClearedMessage(int levelCount);
 
   /// No description provided for @game01ScreenConfirmButton.
   ///
-  /// In ko, this message translates to:
-  /// **'확인'**
+  /// In en, this message translates to:
+  /// **'OK'**
   String get game01ScreenConfirmButton;
 
   /// No description provided for @game02ScreenScoreUnit.
   ///
-  /// In ko, this message translates to:
-  /// **'점'**
+  /// In en, this message translates to:
+  /// **'pts'**
   String get game02ScreenScoreUnit;
 
   /// No description provided for @game02ScreenSecondUnit.
   ///
-  /// In ko, this message translates to:
-  /// **'초'**
+  /// In en, this message translates to:
+  /// **'sec'**
   String get game02ScreenSecondUnit;
 
   /// No description provided for @game02ScreenCorrectFeedback.
   ///
-  /// In ko, this message translates to:
-  /// **'딩동댕!'**
+  /// In en, this message translates to:
+  /// **'Correct!'**
   String get game02ScreenCorrectFeedback;
 
   /// No description provided for @game02ScreenIncorrectFeedback.
   ///
-  /// In ko, this message translates to:
-  /// **'땡!'**
+  /// In en, this message translates to:
+  /// **'Incorrect!'**
   String get game02ScreenIncorrectFeedback;
 
   /// No description provided for @game02ScreenStartMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'구구단의 정답을 찾아 터뜨리세요!'**
+  /// In en, this message translates to:
+  /// **'Pop the balloon with the correct multiplication answer!'**
   String get game02ScreenStartMessage;
 
   /// No description provided for @game02ScreenStartButton.
   ///
-  /// In ko, this message translates to:
-  /// **'게임 시작'**
+  /// In en, this message translates to:
+  /// **'Start Game'**
   String get game02ScreenStartButton;
 
   /// No description provided for @game02ScreenGameOverTitle.
   ///
-  /// In ko, this message translates to:
-  /// **'시간 종료! ⏰'**
+  /// In en, this message translates to:
+  /// **'Time\'s Up! ⏰'**
   String get game02ScreenGameOverTitle;
 
   /// No description provided for @game02ScreenGameOverMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'맞힌 개수 : {score}'**
+  /// In en, this message translates to:
+  /// **'Correct Answers: {score}'**
   String game02ScreenGameOverMessage(int score);
 
   /// No description provided for @game02ScreenConfirmButton.
   ///
-  /// In ko, this message translates to:
-  /// **'확인'**
+  /// In en, this message translates to:
+  /// **'OK'**
   String get game02ScreenConfirmButton;
 
   /// No description provided for @game03ScreenScoreUnit.
   ///
-  /// In ko, this message translates to:
-  /// **'점'**
+  /// In en, this message translates to:
+  /// **'pts'**
   String get game03ScreenScoreUnit;
 
   /// No description provided for @game03ScreenSecondUnit.
   ///
-  /// In ko, this message translates to:
-  /// **'초'**
+  /// In en, this message translates to:
+  /// **'sec'**
   String get game03ScreenSecondUnit;
 
   /// No description provided for @game03ScreenCorrectFeedback.
   ///
-  /// In ko, this message translates to:
-  /// **'딩동댕!'**
+  /// In en, this message translates to:
+  /// **'Correct!'**
   String get game03ScreenCorrectFeedback;
 
   /// No description provided for @game03ScreenIncorrectFeedback.
   ///
-  /// In ko, this message translates to:
-  /// **'땡!'**
+  /// In en, this message translates to:
+  /// **'Incorrect!'**
   String get game03ScreenIncorrectFeedback;
 
   /// No description provided for @game03ScreenStartMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!'**
+  /// In en, this message translates to:
+  /// **'Pop the balloons matching the answer to the equation!'**
   String get game03ScreenStartMessage;
 
   /// No description provided for @game03ScreenStartButton.
   ///
-  /// In ko, this message translates to:
-  /// **'게임 시작'**
+  /// In en, this message translates to:
+  /// **'Start Game'**
   String get game03ScreenStartButton;
 
   /// No description provided for @game03ScreenGameOverTitle.
   ///
-  /// In ko, this message translates to:
-  /// **'시간 종료! ⏰'**
+  /// In en, this message translates to:
+  /// **'Time\'s Up! ⏰'**
   String get game03ScreenGameOverTitle;
 
   /// No description provided for @game03ScreenGameOverMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'최종 점수 : {score}'**
+  /// In en, this message translates to:
+  /// **'Final Score: {score}'**
   String game03ScreenGameOverMessage(int score);
 
   /// No description provided for @game03ScreenConfirmButton.
   ///
-  /// In ko, this message translates to:
-  /// **'확인'**
+  /// In en, this message translates to:
+  /// **'OK'**
   String get game03ScreenConfirmButton;
 
   /// No description provided for @game04Title.
   ///
-  /// In ko, this message translates to:
-  /// **'스피드 챌린지'**
+  /// In en, this message translates to:
+  /// **'Speed Challenge'**
   String get game04Title;
 
   /// No description provided for @game04Description.
   ///
-  /// In ko, this message translates to:
-  /// **'조건에 맞는 풍선 100개를 빠르게 터뜨리세요!'**
+  /// In en, this message translates to:
+  /// **'Pop 100 balloons as fast as you can!'**
   String get game04Description;
 
   /// No description provided for @game04BestTime.
   ///
-  /// In ko, this message translates to:
-  /// **'최고 기록: {time}초'**
+  /// In en, this message translates to:
+  /// **'Best time: {time}s'**
   String game04BestTime(String time);
 
   /// No description provided for @game04ScreenBalloonsUnit.
   ///
-  /// In ko, this message translates to:
-  /// **'개'**
+  /// In en, this message translates to:
+  /// **'popped'**
   String get game04ScreenBalloonsUnit;
 
   /// No description provided for @game04ScreenSecondsUnit.
   ///
-  /// In ko, this message translates to:
-  /// **'초'**
+  /// In en, this message translates to:
+  /// **'sec'**
   String get game04ScreenSecondsUnit;
 
   /// No description provided for @game04ScreenColorRule.
   ///
-  /// In ko, this message translates to:
-  /// **'이 색 풍선을 터뜨려요'**
+  /// In en, this message translates to:
+  /// **'Pop this color'**
   String get game04ScreenColorRule;
 
   /// No description provided for @game04ScreenLetterRule.
   ///
-  /// In ko, this message translates to:
-  /// **'이 알파벳 풍선을 터뜨려요'**
+  /// In en, this message translates to:
+  /// **'Pop this letter'**
   String get game04ScreenLetterRule;
 
   /// No description provided for @game04ScreenStartMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'풍선 100개를 최대한 빠르게 터뜨리세요!\n10개를 터뜨릴 때마다 목표 조건이 바뀝니다.'**
+  /// In en, this message translates to:
+  /// **'Pop all 100 balloons as fast as you can!\nThe target changes every 10 balloons.'**
   String get game04ScreenStartMessage;
 
   /// No description provided for @game04ScreenStartButton.
   ///
-  /// In ko, this message translates to:
-  /// **'게임 시작'**
+  /// In en, this message translates to:
+  /// **'Start Game'**
   String get game04ScreenStartButton;
 
   /// No description provided for @game04ScreenCompleteTitle.
   ///
-  /// In ko, this message translates to:
-  /// **'스피드 챌린지 완료! 🎉'**
+  /// In en, this message translates to:
+  /// **'Speed Challenge Complete! 🎉'**
   String get game04ScreenCompleteTitle;
 
   /// No description provided for @game04ScreenCompleteMessage.
   ///
-  /// In ko, this message translates to:
-  /// **'걸린 시간: {time}초'**
+  /// In en, this message translates to:
+  /// **'Time: {time}s'**
   String game04ScreenCompleteMessage(String time);
 
   /// No description provided for @game04ScreenReplayButton.
   ///
-  /// In ko, this message translates to:
-  /// **'다시하기'**
+  /// In en, this message translates to:
+  /// **'Play Again'**
   String get game04ScreenReplayButton;
 
   /// No description provided for @game04ScreenRuleChangeFeedback.
   ///
-  /// In ko, this message translates to:
-  /// **'룰 체인지!'**
+  /// In en, this message translates to:
+  /// **'Rule Change!'**
   String get game04ScreenRuleChangeFeedback;
 }
 
