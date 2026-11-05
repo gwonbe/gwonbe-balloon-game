@@ -339,6 +339,7 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
                               size: _kBalloonSize,
                               color: balloon.color,
                               label: balloon.letter,
+                              withShadow: true,
                             ),
                           ),
                         ),

@@ -301,7 +301,8 @@ class GameDialog extends StatelessWidget {
     required BuildContext context,
     required String title,
     required String message,
-    required List<GameDialogButton> Function(BuildContext dialogContext) buttonsBuilder,
+    required List<GameDialogButton> Function(BuildContext dialogContext)
+    buttonsBuilder,
   }) {
     return showDialog<T>(
       context: context,
@@ -379,7 +380,10 @@ class GameDialog extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         backgroundColor: AppConst.dialogSecondaryButton,
         foregroundColor: AppConst.dialogSecondaryButtonText,
-        side: const BorderSide(color: AppConst.dialogSecondaryButtonBorder, width: 1.5),
+        side: const BorderSide(
+          color: AppConst.dialogSecondaryButtonBorder,
+          width: 1.5,
+        ),
         padding: padding,
       ),
       child: Text(b.label, style: textStyle),
@@ -407,11 +411,7 @@ class GameDialogOverlay extends StatelessWidget {
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: GameDialog(
-            title: title,
-            message: message,
-            buttons: buttons,
-          ),
+          child: GameDialog(title: title, message: message, buttons: buttons),
         ),
       ),
     );
@@ -480,10 +480,7 @@ class GameTopBar extends StatelessWidget {
                 Row(children: spacedChips),
               ],
             ),
-            if (bottom != null) ...[
-              const SizedBox(height: 14),
-              bottom!,
-            ],
+            if (bottom != null) ...[const SizedBox(height: 14), bottom!],
           ],
         ),
       ),
@@ -523,13 +520,19 @@ class StartOverlay extends StatelessWidget {
               ElevatedButton(
                 onPressed: onStart,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 14,
+                  ),
                   backgroundColor: AppConst.mainColor,
                   foregroundColor: Colors.white,
                 ),
                 child: Text(
                   buttonLabel,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -549,7 +552,9 @@ class FeedbackOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = correct ? AppConst.feedbackCorrect : AppConst.feedbackWrong;
+    final Color color = correct
+        ? AppConst.feedbackCorrect
+        : AppConst.feedbackWrong;
 
     return Center(
       child: Container(
@@ -583,12 +588,14 @@ class LabeledBalloon extends StatelessWidget {
   final double size;
   final Color color;
   final String label;
+  final bool withShadow;
 
   const LabeledBalloon({
     super.key,
     required this.size,
     required this.color,
     required this.label,
+    this.withShadow = false,
   });
 
   @override
@@ -600,7 +607,7 @@ class LabeledBalloon extends StatelessWidget {
         children: [
           CustomPaint(
             size: Size(size, size * 1.3),
-            painter: BalloonPainter(color: color),
+            painter: BalloonPainter(color: color, withShadow: withShadow),
           ),
           Align(
             alignment: const Alignment(0, -0.35),
@@ -611,7 +618,11 @@ class LabeledBalloon extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 shadows: const [
-                  Shadow(color: Colors.black38, blurRadius: 3, offset: Offset(0, 1)),
+                  Shadow(
+                    color: Colors.black38,
+                    blurRadius: 3,
+                    offset: Offset(0, 1),
+                  ),
                 ],
               ),
             ),
