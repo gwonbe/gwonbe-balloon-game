@@ -45,7 +45,7 @@
   "baseGameStateContinueButton": "Continue",
   "game01ScreenSecondUnit": "sec",
   "game01ScreenMissUnit": "",
-  "game01ScreenStartMessage": "Clear all {levelCount} levels!\nMissing {maxMiss} balloons ends the game!\nBalloons get faster as you progress!",
+  "game01ScreenStartMessage": "Complete all {levelCount} levels!\nMissing a balloon or tapping a bomb costs a life!\nLose all {maxMiss} lives and the game ends.\nBalloons get faster each level!",
   "@game01ScreenStartMessage": {
     "placeholders": {
       "levelCount": {
@@ -65,7 +65,7 @@
       }
     }
   },
-  "game01ScreenLevelClearedMessage": "Balloons missed: {miss}\nReady for the next level?",
+  "game01ScreenLevelClearedMessage": "Mistakes: {miss}\nReady for the next level?",
   "@game01ScreenLevelClearedMessage": {
     "miss": {
       "type": "int"
@@ -73,7 +73,7 @@
   },
   "game01ScreenNextLevelButton": "Next Level",
   "game01ScreenGameOverTitle": "Game Over! 😢",
-  "game01ScreenGameOverMessage": "You missed {maxMiss} balloons!\nTry again from the same level!",
+  "game01ScreenGameOverMessage": "You lost all {maxMiss} lives!\nAvoid missing balloons and tapping bombs!",
   "@game01ScreenGameOverMessage": {
     "placeholders": {
       "maxMiss": {

@@ -81,7 +81,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String game01ScreenStartMessage(int levelCount, int maxMiss) {
-    return 'Clear all $levelCount levels!\nMissing $maxMiss balloons ends the game!\nBalloons get faster as you progress!';
+    return 'Complete all $levelCount levels!\nMissing a balloon or tapping a bomb costs a life!\nLose all $maxMiss lives and the game ends.\nBalloons get faster each level!';
   }
 
   @override
@@ -94,7 +94,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String game01ScreenLevelClearedMessage(Object miss) {
-    return 'Balloons missed: $miss\nReady for the next level?';
+    return 'Mistakes: $miss\nReady for the next level?';
   }
 
   @override
@@ -105,7 +105,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String game01ScreenGameOverMessage(int maxMiss) {
-    return 'You missed $maxMiss balloons!\nTry again from the same level!';
+    return 'You lost all $maxMiss lives!\nAvoid missing balloons and tapping bombs!';
   }
 
   @override

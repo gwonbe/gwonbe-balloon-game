@@ -24,7 +24,7 @@ const int kLevelCount = 5;
 /// 모든 단계 공통 제한 시간(초)
 const int kLevelDurationSeconds = 32;
 
-/// 이 횟수만큼 풍선을 놓치면 게임 종료
+/// 풍선을 놓치거나 폭탄에 닿아 이 횟수만큼 생명을 잃으면 게임 종료
 const int kMaxMiss = 5;
 
 /// 모든 단계 공통 풍선 크기 범위 (단계가 올라가도 크기는 그대로)
@@ -81,6 +81,7 @@ class Balloon {
   final double size;
   final Color color;
   final double speed;
+  bool isPopping = false;
 
   Balloon({
     required this.id,
@@ -90,6 +91,94 @@ class Balloon {
     required this.color,
     required this.speed,
   });
+}
+
+class Bomb {
+  final int id;
+  final double x;
+  double y;
+  final double size;
+  final double speed;
+
+  Bomb({
+    required this.id,
+    required this.x,
+    required this.y,
+    required this.size,
+    required this.speed,
+  });
+}
+
+class _BombPainter extends CustomPainter {
+  const _BombPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Offset center = Offset(size.width * 0.48, size.height * 0.59);
+    final double radius = size.width * 0.32;
+
+    canvas.drawCircle(
+      center + const Offset(1.5, 2.5),
+      radius,
+      Paint()..color = Colors.black.withValues(alpha: 0.22),
+    );
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF4A4A4A), Color(0xFF171717)],
+        ).createShader(Rect.fromCircle(center: center, radius: radius)),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: center + Offset(-radius * 0.32, -radius * 0.35),
+        width: radius * 0.48,
+        height: radius * 0.28,
+      ),
+      Paint()..color = Colors.white.withValues(alpha: 0.28),
+    );
+
+    final Path fuse = Path()
+      ..moveTo(center.dx + radius * 0.55, center.dy - radius * 0.62)
+      ..quadraticBezierTo(
+        size.width * 0.78,
+        size.height * 0.24,
+        size.width * 0.72,
+        size.height * 0.12,
+      );
+    canvas.drawPath(
+      fuse,
+      Paint()
+        ..color = const Color(0xFF795548)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.width * 0.09
+        ..strokeCap = StrokeCap.round,
+    );
+
+    final Offset spark = Offset(size.width * 0.74, size.height * 0.12);
+    final Paint sparkPaint = Paint()
+      ..color = const Color(0xFFFFB300)
+      ..strokeWidth = size.width * 0.055
+      ..strokeCap = StrokeCap.round;
+    for (final Offset ray in const [
+      Offset(-0.10, -0.04),
+      Offset(0.08, -0.09),
+      Offset(0.13, 0.05),
+      Offset(-0.02, 0.11),
+    ]) {
+      canvas.drawLine(
+        spark + Offset(ray.dx * size.width * 0.55, ray.dy * size.height * 0.55),
+        spark + Offset(ray.dx * size.width, ray.dy * size.height),
+        sparkPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _BombPainter oldDelegate) => false;
 }
 
 /// 풍선 레이어만 다시 그리게 하기 위한 알림 객체
@@ -104,6 +193,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   late AppLocalizations l10n;
   final Random _random = Random();
   final List<Balloon> _balloons = [];
+  final List<Bomb> _bombs = [];
   final _FrameNotifier _frameNotifier = _FrameNotifier();
   int _nextId = 0;
 
@@ -116,8 +206,9 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   int _levelIndex = 0; // 0-based (0 -> 단계 1)
   LevelConfig get _currentLevel => kLevels[_levelIndex];
 
-  int _miss = 0; // 이번 단계에서 놓친 풍선 수 (단계 시작 시 0으로 초기화)
+  int _miss = 0; // 이번 단계에서 잃은 생명 수
   int _spawnedCount = 0; // 이번 단계에서 이미 생성된 풍선 수
+  int _spawnedBombCount = 0;
   int _timeLeft = kLevelDurationSeconds;
 
   _GameStatus _status = _GameStatus.ready;
@@ -170,10 +261,12 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
       _levelIndex = levelIndex;
       _miss = 0; // 단계가 시작될 때마다 미스 초기화
       _spawnedCount = 0;
+      _spawnedBombCount = 0;
       _playTime = 0;
       _timeLeft = kLevelDurationSeconds;
       _status = _GameStatus.playing;
       _balloons.clear();
+      _bombs.clear();
     });
 
     // 정지된 상태에서 시작하면 처음부터 재생된다.
@@ -186,20 +279,25 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
     if (_status != _GameStatus.playing) return;
 
     // 프레임 간격(초). 앱이 잠깐 멈췄다 돌아왔을 때 풍선이 튀지 않도록 상한을 둔다.
-    final double dt =
-        ((elapsed - _lastTick).inMicroseconds / 1e6).clamp(0.0, 0.05).toDouble();
+    final double dt = ((elapsed - _lastTick).inMicroseconds / 1e6)
+        .clamp(0.0, 0.05)
+        .toDouble();
     _lastTick = elapsed;
     _playTime += dt;
 
-    // 1) 풍선 이동
+    // 풍선 속도는 기존 계산을 유지하고 폭탄도 같은 단계 속도 범위로 이동한다.
     for (final b in _balloons) {
       b.y -= b.speed * _kSpeedScale * dt;
     }
+    for (final bomb in _bombs) {
+      bomb.y -= bomb.speed * _kSpeedScale * dt;
+    }
 
-    // 2) 터뜨리지 못하고 화면 위로 사라진 풍선 = 미스
+    // 놓친 풍선은 생명을 줄이고, 화면 위로 지나간 폭탄은 사라진다.
     final int before = _balloons.length;
-    _balloons.removeWhere((b) => b.y + b.size < 0);
+    _balloons.removeWhere((b) => !b.isPopping && b.y + b.size < 0);
     final int missed = before - _balloons.length;
+    _bombs.removeWhere((bomb) => bomb.y + bomb.size < 0);
 
     // 3) 제한 시간 안에 풍선이 고르게 나오도록 스폰
     final int totalSpawn = _currentLevel.spawnCount;
@@ -207,6 +305,14 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
     while (_spawnedCount < totalSpawn &&
         _playTime >= (_spawnedCount + 0.5) * interval) {
       _spawnBalloon();
+    }
+
+    // 폭탄 장애물은 단계가 오를수록 조금씩 더 자주 나타난다.
+    final int totalBombs = 6 + _levelIndex * 2;
+    final double bombInterval = kLevelDurationSeconds / totalBombs;
+    while (_spawnedBombCount < totalBombs &&
+        _playTime >= (_spawnedBombCount + 0.5) * bombInterval) {
+      _spawnBomb();
     }
 
     // 풍선 레이어만 다시 그린다 (화면 전체 setState 아님)
@@ -254,7 +360,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
     unawaited(saveBestScore());
   }
 
-  /// 풍선을 kMaxMiss개 놓쳐서 게임 종료
+  /// 생명을 모두 잃어 게임 종료
   void _failLevel() {
     cancelAllTimers();
     stopBgm(); // 실패 다이얼로그에서도 음악 정지
@@ -265,9 +371,11 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   void _spawnBalloon() {
     if (_screenSize == Size.zero) return;
     final LevelConfig config = _currentLevel;
-    final double size = kBalloonMinSize +
+    final double size =
+        kBalloonMinSize +
         _random.nextDouble() * (kBalloonMaxSize - kBalloonMinSize);
-    final double speed = config.minSpeed +
+    final double speed =
+        config.minSpeed +
         _random.nextDouble() * (config.maxSpeed - config.minSpeed);
 
     _spawnedCount++;
@@ -277,16 +385,50 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
         x: _random.nextDouble(), // 0.0~1.0
         y: _screenSize.height, // 화면 아래에서 시작
         size: size,
-        color: AppConst.balloonColors[_random.nextInt(AppConst.balloonColors.length)],
+        color: AppConst
+            .balloonColors[_random.nextInt(AppConst.balloonColors.length)],
+        speed: speed,
+      ),
+    );
+  }
+
+  void _spawnBomb() {
+    if (_screenSize == Size.zero) return;
+    final LevelConfig config = _currentLevel;
+    final double speed =
+        config.minSpeed +
+        _random.nextDouble() * (config.maxSpeed - config.minSpeed);
+
+    _spawnedBombCount++;
+    _bombs.add(
+      Bomb(
+        id: _nextId++,
+        x: _random.nextDouble(),
+        y: _screenSize.height,
+        size: 48,
         speed: speed,
       ),
     );
   }
 
   void _popBalloon(Balloon balloon) {
-    if (_status != _GameStatus.playing || isPaused) return;
+    if (_status != _GameStatus.playing || isPaused || balloon.isPopping) return;
+    balloon.isPopping = true;
+    _frameNotifier.notify();
+  }
+
+  void _removePoppedBalloon(Balloon balloon) {
+    if (!mounted || !balloon.isPopping) return;
     _balloons.removeWhere((b) => b.id == balloon.id);
-    _frameNotifier.notify(); // 풍선 레이어만 갱신
+    _frameNotifier.notify();
+  }
+
+  void _tapBomb(Bomb bomb) {
+    if (_status != _GameStatus.playing || isPaused) return;
+    _bombs.removeWhere((b) => b.id == bomb.id);
+    _frameNotifier.notify();
+    setState(() => _miss++);
+    if (_miss >= kMaxMiss) _failLevel();
   }
 
   void _goToNextLevel() {
@@ -319,6 +461,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
                         return Stack(
                           children: [
                             for (final b in _balloons) _buildBalloon(b),
+                            for (final bomb in _bombs) _buildBomb(bomb),
                           ],
                         );
                       },
@@ -334,9 +477,12 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
                       buttonLabel: l10n.game01ScreenStartButton,
                       onStart: () => _startLevel(0),
                     ),
-                  if (_status == _GameStatus.levelCleared) _buildLevelClearOverlay(),
-                  if (_status == _GameStatus.levelFailed) _buildLevelFailedOverlay(),
-                  if (_status == _GameStatus.allCleared) _buildAllClearedOverlay(),
+                  if (_status == _GameStatus.levelCleared)
+                    _buildLevelClearOverlay(),
+                  if (_status == _GameStatus.levelFailed)
+                    _buildLevelFailedOverlay(),
+                  if (_status == _GameStatus.allCleared)
+                    _buildAllClearedOverlay(),
                 ],
               ),
             );
@@ -347,7 +493,10 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   }
 
   Widget _buildBalloon(Balloon b) {
-    final double maxLeft = (_screenSize.width - b.size).clamp(0, double.infinity);
+    final double maxLeft = (_screenSize.width - b.size).clamp(
+      0,
+      double.infinity,
+    );
     final double left = b.x * maxLeft;
 
     return Positioned(
@@ -359,13 +508,44 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
         onTap: () => _popBalloon(b),
         child: Padding(
           padding: const EdgeInsets.all(touchPadding),
-          // RepaintBoundary: 풍선이 움직일 때 위치만 옮기고 다시 그리지 않는다.
-          child: RepaintBoundary(
-            child: SizedBox(
-              width: b.size,
-              height: b.size * 1.3,
-              child: CustomPaint(painter: BalloonPainter(color: b.color)),
+          child: AnimatedScale(
+            scale: b.isPopping ? 1.45 : 1,
+            duration: const Duration(milliseconds: 180),
+            child: AnimatedOpacity(
+              opacity: b.isPopping ? 0 : 1,
+              duration: const Duration(milliseconds: 180),
+              onEnd: () => _removePoppedBalloon(b),
+              child: RepaintBoundary(
+                child: SizedBox(
+                  width: b.size,
+                  height: b.size * 1.3,
+                  child: CustomPaint(painter: BalloonPainter(color: b.color)),
+                ),
+              ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBomb(Bomb bomb) {
+    final double maxLeft = (_screenSize.width - bomb.size)
+        .clamp(0, double.infinity)
+        .toDouble();
+    return Positioned(
+      key: ValueKey('bomb-${bomb.id}'),
+      left: bomb.x * maxLeft - touchPadding,
+      top: bomb.y - touchPadding,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _tapBomb(bomb),
+        child: Padding(
+          padding: const EdgeInsets.all(touchPadding),
+          child: SizedBox(
+            width: bomb.size,
+            height: bomb.size,
+            child: const CustomPaint(painter: _BombPainter()),
           ),
         ),
       ),
@@ -383,8 +563,8 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
           width: 90,
         ),
         InfoChip(
-          icon: Icons.heart_broken,
-          value: '$_miss',
+          icon: Icons.favorite_rounded,
+          value: '${(kMaxMiss - _miss).clamp(0, kMaxMiss)}',
           unit: '/$kMaxMiss',
           width: 95,
         ),

@@ -79,7 +79,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String game01ScreenStartMessage(int levelCount, int maxMiss) {
-    return '총 $levelCount단계\n풍선을 $maxMiss개 놓치면 게임이 끝나요!\n단계가 올라갈수록 풍선이 더 빨라져요!';
+    return '총 $levelCount단계\n풍선을 놓치거나 폭탄을 터치하면 생명이 줄어요!\n생명 $maxMiss개를 모두 잃으면 게임 종료!\n단계가 올라갈수록 풍선이 더 빨라져요!';
   }
 
   @override
@@ -92,7 +92,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String game01ScreenLevelClearedMessage(Object miss) {
-    return '놓친 풍선: $miss개\n다음 단계에 도전할까요?';
+    return '실수 횟수: $miss회\n다음 단계에 도전할까요?';
   }
 
   @override
@@ -103,7 +103,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String game01ScreenGameOverMessage(int maxMiss) {
-    return '풍선을 $maxMiss개 놓쳤어요!\n같은 단계부터 다시 도전해 보세요!';
+    return '생명 $maxMiss개를 모두 잃었어요!\n풍선을 놓치거나 폭탄을 터치하지 않게 조심하세요!';
   }
 
   @override

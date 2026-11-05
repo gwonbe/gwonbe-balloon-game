@@ -227,7 +227,7 @@ abstract class AppLocalizations {
   /// No description provided for @game01ScreenStartMessage.
   ///
   /// In en, this message translates to:
-  /// **'Clear all {levelCount} levels!\nMissing {maxMiss} balloons ends the game!\nBalloons get faster as you progress!'**
+  /// **'Complete all {levelCount} levels!\nMissing a balloon or tapping a bomb costs a life!\nLose all {maxMiss} lives and the game ends.\nBalloons get faster each level!'**
   String game01ScreenStartMessage(int levelCount, int maxMiss);
 
   /// No description provided for @game01ScreenStartButton.
@@ -245,7 +245,7 @@ abstract class AppLocalizations {
   /// No description provided for @game01ScreenLevelClearedMessage.
   ///
   /// In en, this message translates to:
-  /// **'Balloons missed: {miss}\nReady for the next level?'**
+  /// **'Mistakes: {miss}\nReady for the next level?'**
   String game01ScreenLevelClearedMessage(Object miss);
 
   /// No description provided for @game01ScreenNextLevelButton.
@@ -263,7 +263,7 @@ abstract class AppLocalizations {
   /// No description provided for @game01ScreenGameOverMessage.
   ///
   /// In en, this message translates to:
-  /// **'You missed {maxMiss} balloons!\nTry again from the same level!'**
+  /// **'You lost all {maxMiss} lives!\nAvoid missing balloons and tapping bombs!'**
   String game01ScreenGameOverMessage(int maxMiss);
 
   /// No description provided for @game01ScreenRetryButton.
