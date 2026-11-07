@@ -13,7 +13,6 @@ class GameItem {
   final String description;
   final IconData icon;
   final Color color;
-  final Color backgroundColor;
   final WidgetBuilder builder;
   final String bestScoreKey;
 
@@ -25,7 +24,6 @@ class GameItem {
     required this.description,
     required this.icon,
     required this.color,
-    required this.backgroundColor,
     required this.builder,
     required this.bestScoreKey,
     required this.bestTextBuilder,
@@ -86,7 +84,6 @@ class _GameListScreenState extends State<GameListScreen> {
         description: l10n.game01Description,
         icon: Icons.bubble_chart,
         color: AppConst.game01Color,
-        backgroundColor: AppConst.game01Background,
         builder: (context) => const Game01Screen(),
         bestScoreKey: GameStorage.bestScoreGame01,
         bestTextBuilder: (best) => l10n.game01BestScore(best, 0),
@@ -96,7 +93,6 @@ class _GameListScreenState extends State<GameListScreen> {
         description: l10n.game02Description,
         icon: Icons.close,
         color: AppConst.game02Color,
-        backgroundColor: AppConst.game02Background,
         builder: (context) => const Game02Screen(),
         bestScoreKey: GameStorage.bestScoreGame02,
         bestTextBuilder: (best) => l10n.game02BestScore(best),
@@ -106,7 +102,6 @@ class _GameListScreenState extends State<GameListScreen> {
         description: l10n.game03Description,
         icon: Icons.calculate,
         color: AppConst.game03Color,
-        backgroundColor: AppConst.game03Background,
         builder: (context) => const Game03Screen(),
         bestScoreKey: GameStorage.bestScoreGame03,
         bestTextBuilder: (best) => l10n.game03BestScore(best),
@@ -116,7 +111,6 @@ class _GameListScreenState extends State<GameListScreen> {
         description: l10n.game04Description,
         icon: Icons.bolt_rounded,
         color: AppConst.game04Color,
-        backgroundColor: AppConst.game04Background,
         builder: (context) => const Game04Screen(),
         bestScoreKey: GameStorage.bestScoreGame04,
         bestTextBuilder: (best) =>
@@ -131,7 +125,12 @@ class _GameListScreenState extends State<GameListScreen> {
     final List<GameItem> games = _buildGames(l10n);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.gameListScreenTitle)),
+      backgroundColor: AppConst.bgColor,
+      appBar: AppBar(
+        backgroundColor: AppConst.bgColor,
+        surfaceTintColor: Colors.transparent,
+        title: Text(l10n.gameListScreenTitle),
+      ),
       body: Stack(
         children: [
           ListView.separated(
@@ -182,12 +181,6 @@ class _GameCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color color = game.color;
-    final Color softColor = Color.lerp(
-      game.backgroundColor,
-      Colors.white,
-      0.42,
-    )!;
-
     return Container(
       height: 148,
       decoration: BoxDecoration(
@@ -206,13 +199,9 @@ class _GameCard extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Ink(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.white, softColor],
-            ),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(26),
-            border: Border.all(color: color.withValues(alpha: 0.13)),
+            border: Border.all(color: color, width: 2),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(26),

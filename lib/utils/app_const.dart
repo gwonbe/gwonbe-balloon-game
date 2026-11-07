@@ -23,15 +23,10 @@ class AppConst {
   ];
 
   // ───────── 게임 목록 카드 ─────────
-  // 글자(최고 기록)로도 쓰이므로 흰색과의 대비 4.5:1 이상으로 맞춘 진한 톤을 쓴다.
   static const Color game01Color = mainColor;
-  static const Color game01Background = Color(0xFFFFF0F5);
   static const Color game02Color = Color(0xFF2279C2);
-  static const Color game02Background = Color(0xFFEEF6FD);
   static const Color game03Color = Color(0xFF86489D);
-  static const Color game03Background = Color(0xFFF7F0FA);
   static const Color game04Color = Color(0xFF008C82);
-  static const Color game04Background = Color(0xFFE9F8F6);
   static const Color cardTitleColor = Color(0xFF263448);
 
   // ───────── 정보 칩 ─────────
