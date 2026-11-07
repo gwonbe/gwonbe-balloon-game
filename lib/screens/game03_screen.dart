@@ -164,7 +164,11 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   late _Round _round;
   late List<Color> _gridColors;
   late List<bool> _gridActive;
-  int _poppedTargetCount = 0;
+  late List<bool> _gridPopped;
+  late List<Offset> _gridPositions;
+  final GlobalKey _gridKey = GlobalKey();
+  final List<int> _placedBalloons = [];
+  bool _roundComplete = false;
 
   // 정답을 맞혀서 다음 라운드로 넘어가야 하는 상태
   bool _pendingNext = false;
@@ -232,7 +236,16 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     _round = _Round.random(_random);
     _gridColors = _round.buildGridColors(_random);
     _gridActive = List<bool>.filled(_kGridCount, true);
-    _poppedTargetCount = 0;
+    _gridPopped = List<bool>.filled(_kGridCount, false);
+    _gridPositions = List.generate(
+      _kGridCount,
+      (i) => Offset(
+        ((i % _kGridColumns) + 0.5) / _kGridColumns,
+        ((i ~/ _kGridColumns) + 0.5) / _kGridColumns,
+      ),
+    );
+    _placedBalloons.clear();
+    _roundComplete = false;
     _pendingNext = false;
   }
 
@@ -283,7 +296,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     });
   }
 
-  void _onTapCell(int index) {
+  void _onDropBalloon(int index) {
     if (_status != _GameStatus.playing || isPaused) return;
     if (_feedbackText != null ||
         _nextRoundTimer?.isActive == true ||
@@ -295,7 +308,11 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
     setState(() {
       _gridActive[index] = false;
-      if (isTargetColor) _poppedTargetCount++;
+      if (isTargetColor) {
+        _placedBalloons.add(index);
+      } else {
+        _gridPopped[index] = true;
+      }
     });
 
     if (!isTargetColor) {
@@ -303,10 +320,14 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
       return;
     }
 
-    if (_poppedTargetCount == _round.answer) {
+    if (_placedBalloons.length == _round.answer) {
       setState(() {
         _score++;
         _pendingNext = true;
+        _roundComplete = true;
+        for (int i = 0; i < _kGridCount; i++) {
+          if (_gridActive[i]) _gridPopped[i] = true;
+        }
       });
 
       _showFeedback(true);
@@ -342,8 +363,15 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
                 Positioned.fill(
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 140),
-                      child: Center(child: _buildGrid()),
+                      padding: const EdgeInsets.fromLTRB(12, 150, 12, 12),
+                      child: LayoutBuilder(builder: (context, constraints) {
+                        final gridHeight = min(260.0, max(145.0, constraints.maxHeight - 175));
+                        return Column(children: [
+                          Expanded(child: _buildDropArea()),
+                          const SizedBox(height: 12),
+                          SizedBox(height: gridHeight, child: _buildGrid()),
+                        ]);
+                      }),
                     ),
                   ),
                 ),
@@ -381,58 +409,116 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     );
   }
 
-  /// 5x5 풍선판. 터진 풍선 자리는 빈 칸으로 남는다.
+  /// 드래그할 수 있는 5x5 풍선판.
   Widget _buildGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        const double gap = 5;
-        final double gridWidth = min(constraints.maxWidth * 0.94, 390);
-        final double cellSize =
-            (gridWidth - gap * (_kGridColumns - 1)) / _kGridColumns;
-
+        final double cellWidth = constraints.maxWidth / _kGridColumns;
+        final double cellHeight = constraints.maxHeight / _kGridColumns;
+        final double size = min(cellWidth * 0.68, cellHeight * 0.68);
         return SizedBox(
-          width: gridWidth,
-          child: Wrap(
-            spacing: gap,
-            runSpacing: 2,
-            children: List.generate(_kGridCount, (index) {
-              return SizedBox(
-                width: cellSize,
-                height: cellSize * 1.3,
-                child: _gridActive[index]
-                    ? GestureDetector(
-                        onTap: () => _onTapCell(index),
-                        child: LabeledBalloon(
-                          size: cellSize,
-                          color: _gridColors[index],
-                          label: '',
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              );
-            }),
-          ),
+          key: _gridKey,
+          width: constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: Stack(children: [
+            Positioned.fill(child: Container(decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
+              borderRadius: BorderRadius.circular(20),
+            ))),
+            for (int index = 0; index < _kGridCount; index++)
+              if (_gridActive[index] || _gridPopped[index])
+                Positioned(
+                  left: _gridPositions[index].dx * constraints.maxWidth - size / 2,
+                  top: _gridPositions[index].dy * constraints.maxHeight - size * 0.65,
+                  child: AnimatedScale(
+                    scale: _gridPopped[index] ? 1.3 : 1,
+                    duration: const Duration(milliseconds: 180),
+                    child: AnimatedOpacity(
+                      opacity: _gridPopped[index] ? 0 : 1,
+                      duration: const Duration(milliseconds: 180),
+                      child: _gridActive[index]
+                          ? Draggable<int>(
+                              data: index,
+                              dragAnchorStrategy: pointerDragAnchorStrategy,
+                              feedback: Material(color: Colors.transparent, child: LabeledBalloon(size: size, color: _gridColors[index], label: '', withShadow: true)),
+                              childWhenDragging: const SizedBox.shrink(),
+                              onDragEnd: (details) {
+                                if (!_gridActive[index] || !mounted) return;
+                                final box = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+                                if (box == null) return;
+                                final local = box.globalToLocal(details.offset);
+                                setState(() => _gridPositions[index] = Offset(
+                                  ((local.dx + size / 2) / box.size.width).clamp(0.0, 1.0),
+                                  ((local.dy + size * 0.65) / box.size.height).clamp(0.0, 1.0),
+                                ));
+                              },
+                              child: LabeledBalloon(size: size, color: _gridColors[index], label: '', withShadow: true),
+                            )
+                          : LabeledBalloon(size: size, color: _gridColors[index], label: '', withShadow: true),
+                    ),
+                  ),
+                ),
+          ]),
         );
       },
     );
   }
 
+  Widget _buildDropArea() => DragTarget<int>(
+    onWillAcceptWithDetails: (_) => _status == _GameStatus.playing && !isPaused,
+    onAcceptWithDetails: (details) => _onDropBalloon(details.data),
+    builder: (context, candidates, rejected) => AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      width: double.infinity,
+      height: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: candidates.isNotEmpty ? Colors.white.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.48),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _round.targetColor, width: 3),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
+      ),
+      child: Column(children: [
+        Text(l10n.game03ScreenDropPrompt, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        const SizedBox(height: 8),
+        Expanded(child: Center(child: Wrap(
+          alignment: WrapAlignment.center,
+          runAlignment: WrapAlignment.center,
+          spacing: 2,
+          runSpacing: 0,
+          children: _placedBalloons.map((index) => AnimatedOpacity(
+            opacity: _roundComplete ? 0 : 1,
+            duration: const Duration(milliseconds: 180),
+            child: LabeledBalloon(size: 23, color: _gridColors[index], label: ''),
+          )).toList(),
+        ))),
+      ]),
+    ),
+  );
+
   /// 상단 문제 표시: a ○ b = (터뜨린 목표 색 풍선 개수)
   Widget _buildQuestionBoard() {
-    const double balloonSize = 44;
+    const double balloonSize = 52;
     final List<String> labels = [
       '${_round.operand1}',
       _round.operatorSymbol,
       '${_round.operand2}',
       '=',
-      '$_poppedTargetCount',
+      '${_placedBalloons.length}',
     ];
 
     final List<Widget> children = [];
     for (int i = 0; i < labels.length; i++) {
       if (i > 0) children.add(const SizedBox(width: 3));
       children.add(
-        LabeledBalloon(size: balloonSize, color: _round.targetColor, label: labels[i]),
+        LabeledBalloon(
+          size: balloonSize,
+          color: _round.targetColor,
+          label: labels[i],
+          labelShadowColor: Colors.black54,
+        ),
       );
     }
 

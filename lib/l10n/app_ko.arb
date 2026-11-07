@@ -39,7 +39,7 @@
   "baseGameStateAdTimeTitle": "광고타임!",
   "baseGameStateAdTimeMessage": "확인 버튼을 눌러주세요.",
   "baseGameStateConfirmButton": "확인",
-  "baseGameStatePauseTitle": "일시정지 ⏸️",
+  "baseGameStatePauseTitle": "일시정지",
   "baseGameStatePauseMessage": "게임을 중단하시겠습니까?",
   "baseGameStateQuitButton": "중단하기",
   "baseGameStateContinueButton": "계속하기",
@@ -98,7 +98,7 @@
   "game02ScreenIncorrectFeedback": "땡!",
   "game02ScreenStartMessage": "구구단의 정답을 찾아 터뜨리세요!",
   "game02ScreenStartButton": "게임 시작",
-  "game02ScreenGameOverTitle": "시간 종료! ⏰",
+  "game02ScreenGameOverTitle": "시간 종료!",
   "game02ScreenGameOverMessage": "맞힌 개수 : {score}",
   "@game02ScreenGameOverMessage": {
     "placeholders": {
@@ -112,9 +112,10 @@
   "game03ScreenSecondUnit": "초",
   "game03ScreenCorrectFeedback": "딩동댕!",
   "game03ScreenIncorrectFeedback": "땡!",
+  "game03ScreenDropPrompt": "같은 색 풍선을 이곳으로 옮기세요",
   "game03ScreenStartMessage": "계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!",
   "game03ScreenStartButton": "게임 시작",
-  "game03ScreenGameOverTitle": "시간 종료! ⏰",
+  "game03ScreenGameOverTitle": "시간 종료!",
   "game03ScreenGameOverMessage": "최종 점수 : {score}",
   "@game03ScreenGameOverMessage": {
     "placeholders": {

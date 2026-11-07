@@ -39,7 +39,7 @@
   "baseGameStateAdTimeTitle": "Ad Break!",
   "baseGameStateAdTimeMessage": "Please press Confirm.",
   "baseGameStateConfirmButton": "Confirm",
-  "baseGameStatePauseTitle": "Paused ⏸️",
+  "baseGameStatePauseTitle": "Paused ️",
   "baseGameStatePauseMessage": "Do you want to quit the game?",
   "baseGameStateQuitButton": "Quit",
   "baseGameStateContinueButton": "Continue",
@@ -98,7 +98,7 @@
   "game02ScreenIncorrectFeedback": "Incorrect!",
   "game02ScreenStartMessage": "Pop the balloon with the correct multiplication answer!",
   "game02ScreenStartButton": "Start Game",
-  "game02ScreenGameOverTitle": "Time's Up! ⏰",
+  "game02ScreenGameOverTitle": "Time's Up!",
   "game02ScreenGameOverMessage": "Correct Answers: {score}",
   "@game02ScreenGameOverMessage": {
     "placeholders": {
@@ -112,9 +112,10 @@
   "game03ScreenSecondUnit": "sec",
   "game03ScreenCorrectFeedback": "Correct!",
   "game03ScreenIncorrectFeedback": "Incorrect!",
+  "game03ScreenDropPrompt": "Drag matching balloons here",
   "game03ScreenStartMessage": "Pop the balloons matching the answer to the equation!",
   "game03ScreenStartButton": "Start Game",
-  "game03ScreenGameOverTitle": "Time's Up! ⏰",
+  "game03ScreenGameOverTitle": "Time's Up!",
   "game03ScreenGameOverMessage": "Final Score: {score}",
   "@game03ScreenGameOverMessage": {
     "placeholders": {

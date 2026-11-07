@@ -191,7 +191,7 @@ abstract class AppLocalizations {
   /// No description provided for @baseGameStatePauseTitle.
   ///
   /// In en, this message translates to:
-  /// **'Paused ⏸️'**
+  /// **'Paused ️'**
   String get baseGameStatePauseTitle;
 
   /// No description provided for @baseGameStatePauseMessage.
@@ -329,7 +329,7 @@ abstract class AppLocalizations {
   /// No description provided for @game02ScreenGameOverTitle.
   ///
   /// In en, this message translates to:
-  /// **'Time\'s Up! ⏰'**
+  /// **'Time\'s Up!'**
   String get game02ScreenGameOverTitle;
 
   /// No description provided for @game02ScreenGameOverMessage.
@@ -368,6 +368,12 @@ abstract class AppLocalizations {
   /// **'Incorrect!'**
   String get game03ScreenIncorrectFeedback;
 
+  /// No description provided for @game03ScreenDropPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag matching balloons here'**
+  String get game03ScreenDropPrompt;
+
   /// No description provided for @game03ScreenStartMessage.
   ///
   /// In en, this message translates to:
@@ -383,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @game03ScreenGameOverTitle.
   ///
   /// In en, this message translates to:
-  /// **'Time\'s Up! ⏰'**
+  /// **'Time\'s Up!'**
   String get game03ScreenGameOverTitle;
 
   /// No description provided for @game03ScreenGameOverMessage.

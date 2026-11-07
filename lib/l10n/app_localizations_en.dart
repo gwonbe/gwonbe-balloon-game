@@ -62,7 +62,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get baseGameStateConfirmButton => 'Confirm';
 
   @override
-  String get baseGameStatePauseTitle => 'Paused ⏸️';
+  String get baseGameStatePauseTitle => 'Paused ️';
 
   @override
   String get baseGameStatePauseMessage => 'Do you want to quit the game?';
@@ -142,7 +142,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game02ScreenStartButton => 'Start Game';
 
   @override
-  String get game02ScreenGameOverTitle => 'Time\'s Up! ⏰';
+  String get game02ScreenGameOverTitle => 'Time\'s Up!';
 
   @override
   String game02ScreenGameOverMessage(int score) {
@@ -165,6 +165,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game03ScreenIncorrectFeedback => 'Incorrect!';
 
   @override
+  String get game03ScreenDropPrompt => 'Drag matching balloons here';
+
+  @override
   String get game03ScreenStartMessage =>
       'Pop the balloons matching the answer to the equation!';
 
@@ -172,7 +175,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game03ScreenStartButton => 'Start Game';
 
   @override
-  String get game03ScreenGameOverTitle => 'Time\'s Up! ⏰';
+  String get game03ScreenGameOverTitle => 'Time\'s Up!';
 
   @override
   String game03ScreenGameOverMessage(int score) {

@@ -589,6 +589,7 @@ class LabeledBalloon extends StatelessWidget {
   final Color color;
   final String label;
   final bool withShadow;
+  final Color labelShadowColor;
 
   const LabeledBalloon({
     super.key,
@@ -596,6 +597,7 @@ class LabeledBalloon extends StatelessWidget {
     required this.color,
     required this.label,
     this.withShadow = false,
+    this.labelShadowColor = Colors.black38,
   });
 
   @override
@@ -617,11 +619,11 @@ class LabeledBalloon extends StatelessWidget {
                 fontSize: size * 0.34,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-                shadows: const [
+                shadows: [
                   Shadow(
-                    color: Colors.black38,
+                    color: labelShadowColor,
                     blurRadius: 3,
-                    offset: Offset(0, 1),
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),

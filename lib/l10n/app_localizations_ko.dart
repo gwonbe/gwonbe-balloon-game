@@ -60,7 +60,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get baseGameStateConfirmButton => '확인';
 
   @override
-  String get baseGameStatePauseTitle => '일시정지 ⏸️';
+  String get baseGameStatePauseTitle => '일시정지';
 
   @override
   String get baseGameStatePauseMessage => '게임을 중단하시겠습니까?';
@@ -139,7 +139,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game02ScreenStartButton => '게임 시작';
 
   @override
-  String get game02ScreenGameOverTitle => '시간 종료! ⏰';
+  String get game02ScreenGameOverTitle => '시간 종료!';
 
   @override
   String game02ScreenGameOverMessage(int score) {
@@ -162,13 +162,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game03ScreenIncorrectFeedback => '땡!';
 
   @override
+  String get game03ScreenDropPrompt => '같은 색 풍선을 이곳으로 옮기세요';
+
+  @override
   String get game03ScreenStartMessage => '계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!';
 
   @override
   String get game03ScreenStartButton => '게임 시작';
 
   @override
-  String get game03ScreenGameOverTitle => '시간 종료! ⏰';
+  String get game03ScreenGameOverTitle => '시간 종료!';
 
   @override
   String game03ScreenGameOverMessage(int score) {
