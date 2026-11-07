@@ -384,11 +384,11 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          LabeledBalloon(size: 56, color: AppConst.questionNumberColor, label: '${_question.dan}'),
+          LabeledBalloon(size: 56, color: const Color(0xFF3096D8), label: '${_question.dan}'),
           const SizedBox(width: 10),
-          const LabeledBalloon(size: 56, color: AppConst.questionOperatorColor, label: '×'),
+          const LabeledBalloon(size: 56, color: AppConst.mainColor, label: '×'),
           const SizedBox(width: 10),
-          LabeledBalloon(size: 56, color: AppConst.questionNumberColor, label: '${_question.multiplier}'),
+          LabeledBalloon(size: 56, color: const Color(0xFF3096D8), label: '${_question.multiplier}'),
         ],
       ),
     );

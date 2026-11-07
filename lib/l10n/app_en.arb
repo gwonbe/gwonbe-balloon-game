@@ -125,7 +125,7 @@
   },
   "game03ScreenConfirmButton": "OK",
   "game04Title": "Speed Challenge",
-  "game04Description": "Pop 100 balloons as fast as you can!",
+  "game04Description": "Pop 100 balloons by color as fast as you can!",
   "game04BestTime": "Best time: {time}s",
   "@game04BestTime": {
     "placeholders": {
@@ -137,8 +137,7 @@
   "game04ScreenBalloonsUnit": "popped",
   "game04ScreenSecondsUnit": "sec",
   "game04ScreenColorRule": "Pop this color",
-  "game04ScreenLetterRule": "Pop this letter",
-  "game04ScreenStartMessage": "Pop all 100 balloons as fast as you can!\nThe target changes every 10 balloons.",
+  "game04ScreenStartMessage": "Pop all 100 balloons by color as fast as you can!\nThe target color changes every 10 balloons.",
   "game04ScreenStartButton": "Start Game",
   "game04ScreenCompleteTitle": "Speed Challenge Complete! 🎉",
   "game04ScreenCompleteMessage": "Time: {time}s",

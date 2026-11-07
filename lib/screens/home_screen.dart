@@ -1,6 +1,7 @@
 import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/screens/game_list_screen.dart';
 import 'package:balloon_game/utils/app_bgm.dart';
+import 'package:balloon_game/utils/app_const.dart';
 import 'package:balloon_game/widgets/app_version_text.dart';
 import 'package:flutter/material.dart';
 
@@ -68,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          color: const Color(0xFFB8E3F3),
+          color: AppConst.bgColor,
           child: Stack(
             children: [
               Center(

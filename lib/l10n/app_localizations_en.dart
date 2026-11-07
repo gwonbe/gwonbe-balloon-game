@@ -186,7 +186,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game04Title => 'Speed Challenge';
 
   @override
-  String get game04Description => 'Pop 100 balloons as fast as you can!';
+  String get game04Description =>
+      'Pop 100 balloons by color as fast as you can!';
 
   @override
   String game04BestTime(String time) {
@@ -203,11 +204,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game04ScreenColorRule => 'Pop this color';
 
   @override
-  String get game04ScreenLetterRule => 'Pop this letter';
-
-  @override
   String get game04ScreenStartMessage =>
-      'Pop all 100 balloons as fast as you can!\nThe target changes every 10 balloons.';
+      'Pop all 100 balloons by color as fast as you can!\nThe target color changes every 10 balloons.';
 
   @override
   String get game04ScreenStartButton => 'Start Game';

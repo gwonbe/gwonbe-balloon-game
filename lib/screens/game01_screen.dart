@@ -99,6 +99,7 @@ class Bomb {
   double y;
   final double size;
   final double speed;
+  bool isExploding = false;
 
   Bomb({
     required this.id,
@@ -179,6 +180,56 @@ class _BombPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _BombPainter oldDelegate) => false;
+}
+
+class _ExplosionPainter extends CustomPainter {
+  final double progress;
+
+  const _ExplosionPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Offset center = Offset(size.width / 2, size.height / 2);
+    final double fade = (1 - progress).clamp(0.0, 1.0);
+    final double radius = size.width * (0.14 + progress * 0.31);
+
+    canvas.drawCircle(
+      center,
+      radius * 0.62,
+      Paint()
+        ..color = const Color(0xFFFF8F00).withValues(alpha: fade * 0.5)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+    );
+    canvas.drawCircle(
+      center,
+      radius * 0.72,
+      Paint()
+        ..color = const Color(0xFFFFC107).withValues(alpha: fade * 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 5 * fade,
+    );
+
+    final Paint rayPaint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 4 * fade;
+    for (int i = 0; i < 8; i++) {
+      final double angle = i * pi / 4;
+      final double innerRadius = radius * 0.52;
+      final double outerRadius = radius * (0.78 + (i.isEven ? 0.2 : 0));
+      rayPaint.color = i.isEven
+          ? const Color(0xFFFF5722).withValues(alpha: fade)
+          : const Color(0xFFFFC107).withValues(alpha: fade);
+      canvas.drawLine(
+        center + Offset(cos(angle) * innerRadius, sin(angle) * innerRadius),
+        center + Offset(cos(angle) * outerRadius, sin(angle) * outerRadius),
+        rayPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ExplosionPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 /// 풍선 레이어만 다시 그리게 하기 위한 알림 객체
@@ -290,14 +341,16 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
       b.y -= b.speed * _kSpeedScale * dt;
     }
     for (final bomb in _bombs) {
-      bomb.y -= bomb.speed * _kSpeedScale * dt;
+      if (!bomb.isExploding) {
+        bomb.y -= bomb.speed * _kSpeedScale * dt;
+      }
     }
 
     // 놓친 풍선은 생명을 줄이고, 화면 위로 지나간 폭탄은 사라진다.
     final int before = _balloons.length;
     _balloons.removeWhere((b) => !b.isPopping && b.y + b.size < 0);
     final int missed = before - _balloons.length;
-    _bombs.removeWhere((bomb) => bomb.y + bomb.size < 0);
+    _bombs.removeWhere((bomb) => !bomb.isExploding && bomb.y + bomb.size < 0);
 
     // 3) 제한 시간 안에 풍선이 고르게 나오도록 스폰
     final int totalSpawn = _currentLevel.spawnCount;
@@ -424,11 +477,17 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   }
 
   void _tapBomb(Bomb bomb) {
-    if (_status != _GameStatus.playing || isPaused) return;
-    _bombs.removeWhere((b) => b.id == bomb.id);
+    if (_status != _GameStatus.playing || isPaused || bomb.isExploding) return;
+    bomb.isExploding = true;
     _frameNotifier.notify();
     setState(() => _miss++);
     if (_miss >= kMaxMiss) _failLevel();
+  }
+
+  void _removeExplodedBomb(Bomb bomb) {
+    if (!mounted || !bomb.isExploding) return;
+    _bombs.removeWhere((b) => b.id == bomb.id);
+    _frameNotifier.notify();
   }
 
   void _goToNextLevel() {
@@ -540,13 +599,38 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => _tapBomb(bomb),
-        child: Padding(
-          padding: const EdgeInsets.all(touchPadding),
-          child: SizedBox(
-            width: bomb.size,
-            height: bomb.size,
-            child: const CustomPaint(painter: _BombPainter()),
-          ),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(end: bomb.isExploding ? 1 : 0),
+          duration: const Duration(milliseconds: 300),
+          onEnd: () => _removeExplodedBomb(bomb),
+          builder: (context, progress, _) {
+            return SizedBox(
+              width: bomb.size + touchPadding * 2,
+              height: bomb.size + touchPadding * 2,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (bomb.isExploding)
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _ExplosionPainter(progress: progress),
+                      ),
+                    ),
+                  Transform.scale(
+                    scale: 1 + progress * 0.45,
+                    child: Opacity(
+                      opacity: 1 - progress,
+                      child: SizedBox(
+                        width: bomb.size,
+                        height: bomb.size,
+                        child: const CustomPaint(painter: _BombPainter()),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );

@@ -19,32 +19,17 @@ const int _kBalloonCount = 100;
 const int _kBalloonBatchSize = 10;
 const double _kBalloonSize = 74;
 const double _kBalloonHeight = _kBalloonSize * 1.3;
-const List<String> _kLetters = [
-  'A',
-  'B',
-  'C',
-  'D',
-  'E',
-  'F',
-  'G',
-  'H',
-  'I',
-  'J',
-];
 const Duration _kClockRefresh = Duration(milliseconds: 50);
 const Duration _kRuleFeedbackDuration = Duration(milliseconds: 650);
 
 enum _GameStatus { ready, playing, complete }
 
 class _TargetRule {
-  final Color? color;
-  final String? letter;
+  final Color color;
 
-  const _TargetRule.color(this.color) : letter = null;
-  const _TargetRule.letter(this.letter) : color = null;
+  const _TargetRule.color(this.color);
 
-  bool matches(_Balloon balloon) =>
-      color != null ? balloon.color == color : balloon.letter == letter;
+  bool matches(_Balloon balloon) => balloon.color == color;
 }
 
 class _Balloon {
@@ -52,7 +37,6 @@ class _Balloon {
   final double x;
   final double y;
   final Color color;
-  final String letter;
   bool popped = false;
 
   _Balloon({
@@ -60,7 +44,6 @@ class _Balloon {
     required this.x,
     required this.y,
     required this.color,
-    required this.letter,
   });
 }
 
@@ -135,25 +118,7 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
   void _createGame() {
     final List<Color> targetColors = [...AppConst.balloonColors]
       ..shuffle(_random);
-    final List<Color> chosenColors = targetColors.take(5).toList();
-    final List<String> targetLetters = [..._kLetters]..shuffle(_random);
-    final List<String> chosenLetters = targetLetters.take(5).toList();
-
-    final bool startWithColor = _random.nextBool();
-    _rules = List.generate(_kBalloonCount ~/ _kBalloonBatchSize, (index) {
-      final bool isColorRule = index.isEven == startWithColor;
-      final int targetIndex = index ~/ 2;
-      return isColorRule
-          ? _TargetRule.color(chosenColors[targetIndex])
-          : _TargetRule.letter(chosenLetters[targetIndex]);
-    });
-
-    final List<Color> nonTargetColors = AppConst.balloonColors
-        .where((color) => !chosenColors.contains(color))
-        .toList();
-    final List<String> nonTargetLetters = _kLetters
-        .where((letter) => !chosenLetters.contains(letter))
-        .toList();
+    _rules = [for (final color in targetColors) _TargetRule.color(color)];
 
     // 현재 단계의 풍선 묶음이 나머지 묶음보다 위에 쌓이도록 순서를 뒤집어 배치한다.
     final List<List<_Balloon>> batches = [];
@@ -165,12 +130,7 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
             id: id++,
             x: _random.nextDouble(),
             y: _random.nextDouble(),
-            color:
-                rule.color ??
-                nonTargetColors[_random.nextInt(nonTargetColors.length)],
-            letter:
-                rule.letter ??
-                nonTargetLetters[_random.nextInt(nonTargetLetters.length)],
+            color: rule.color,
           ),
       ]);
     }
@@ -221,8 +181,6 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
       (milliseconds / 1000).toStringAsFixed(2);
 
   Widget _buildRuleBoard(_TargetRule rule) {
-    final bool isColorRule = rule.color != null;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
       decoration: BoxDecoration(
@@ -233,16 +191,14 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            isColorRule ? Icons.palette_rounded : Icons.text_fields_rounded,
+          const Icon(
+            Icons.palette_rounded,
             color: AppConst.mainColor,
             size: 22,
           ),
           const SizedBox(width: 9),
           Text(
-            isColorRule
-                ? l10n.game04ScreenColorRule
-                : l10n.game04ScreenLetterRule,
+            l10n.game04ScreenColorRule,
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -250,38 +206,22 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
             ),
           ),
           const SizedBox(width: 12),
-          if (isColorRule)
-            Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                color: rule.color,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.black12, width: 1.5),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-            )
-          else
-            SizedBox(
-              width: 34,
-              height: 34,
-              child: Center(
-                child: Text(
-                  rule.letter!,
-                  style: const TextStyle(
-                    fontSize: 23,
-                    fontWeight: FontWeight.w900,
-                    color: AppConst.cardTitleColor,
-                  ),
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: rule.color,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black12, width: 1.5),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
                 ),
-              ),
+              ],
             ),
+          ),
         ],
       ),
     );
@@ -338,7 +278,7 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
                             child: LabeledBalloon(
                               size: _kBalloonSize,
                               color: balloon.color,
-                              label: balloon.letter,
+                              label: '',
                               withShadow: true,
                             ),
                           ),

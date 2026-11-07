@@ -182,7 +182,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game04Title => '스피드 챌린지';
 
   @override
-  String get game04Description => '조건에 맞는 풍선 100개를 빠르게 터뜨리세요!';
+  String get game04Description => '색상 조건에 맞춰 풍선 100개를 빠르게 터뜨리세요!';
 
   @override
   String game04BestTime(String time) {
@@ -199,11 +199,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game04ScreenColorRule => '이 색 풍선을 터뜨려요';
 
   @override
-  String get game04ScreenLetterRule => '이 알파벳 풍선을 터뜨려요';
-
-  @override
   String get game04ScreenStartMessage =>
-      '풍선 100개를 최대한 빠르게 터뜨리세요!\n10개를 터뜨릴 때마다 목표 조건이 바뀝니다.';
+      '색상 조건에 맞춰 풍선 100개를 최대한 빠르게 터뜨리세요!\n10개를 터뜨릴 때마다 목표 색상이 바뀝니다.';
 
   @override
   String get game04ScreenStartButton => '게임 시작';

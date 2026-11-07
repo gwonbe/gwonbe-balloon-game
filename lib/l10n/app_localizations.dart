@@ -407,7 +407,7 @@ abstract class AppLocalizations {
   /// No description provided for @game04Description.
   ///
   /// In en, this message translates to:
-  /// **'Pop 100 balloons as fast as you can!'**
+  /// **'Pop 100 balloons by color as fast as you can!'**
   String get game04Description;
 
   /// No description provided for @game04BestTime.
@@ -434,16 +434,10 @@ abstract class AppLocalizations {
   /// **'Pop this color'**
   String get game04ScreenColorRule;
 
-  /// No description provided for @game04ScreenLetterRule.
-  ///
-  /// In en, this message translates to:
-  /// **'Pop this letter'**
-  String get game04ScreenLetterRule;
-
   /// No description provided for @game04ScreenStartMessage.
   ///
   /// In en, this message translates to:
-  /// **'Pop all 100 balloons as fast as you can!\nThe target changes every 10 balloons.'**
+  /// **'Pop all 100 balloons by color as fast as you can!\nThe target color changes every 10 balloons.'**
   String get game04ScreenStartMessage;
 
   /// No description provided for @game04ScreenStartButton.
