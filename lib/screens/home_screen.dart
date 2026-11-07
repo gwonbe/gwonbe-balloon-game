@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     child: Text(
                       l10n.homeScreenTapToStart,
                       style: const TextStyle(
-                        fontSize: 32,
+                        fontSize: 34,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         shadows: [
@@ -113,13 +113,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 child: Center(
                   child: AppVersionText(
                     color: Colors.white,
-                    shadows: const [
-                      Shadow(
-                        offset: Offset(0, 2),
-                        blurRadius: 4.0,
-                        color: Color(0x80000000),
-                      ),
-                    ],
                   ),
                 ),
               ),

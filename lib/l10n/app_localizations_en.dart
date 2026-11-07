@@ -89,7 +89,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String game01ScreenLevelClearedTitle(int level) {
-    return 'Level $level Cleared! 🎉';
+    return 'Level $level Cleared!';
   }
 
   @override
@@ -214,7 +214,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game04ScreenStartButton => 'Start Game';
 
   @override
-  String get game04ScreenCompleteTitle => 'Speed Challenge Complete! 🎉';
+  String get game04ScreenCompleteTitle => 'Speed Challenge Complete!';
 
   @override
   String game04ScreenCompleteMessage(String time) {
@@ -222,7 +222,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get game04ScreenReplayButton => 'Play Again';
+  String get game04ScreenListButton => 'Back to List';
+
+  @override
+  String get game04ScreenReplayButton => 'New Game';
 
   @override
   String get game04ScreenRuleChangeFeedback => 'Rule Change!';

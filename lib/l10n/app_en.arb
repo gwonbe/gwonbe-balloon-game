@@ -57,7 +57,7 @@
     }
   },
   "game01ScreenStartButton": "Start Game",
-  "game01ScreenLevelClearedTitle": "Level {level} Cleared! 🎉",
+  "game01ScreenLevelClearedTitle": "Level {level} Cleared!",
   "@game01ScreenLevelClearedTitle": {
     "placeholders": {
       "level": {
@@ -140,7 +140,7 @@
   "game04ScreenColorRule": "Pop this color",
   "game04ScreenStartMessage": "Pop all 100 balloons by color as fast as you can!\nThe target color changes every 10 balloons.",
   "game04ScreenStartButton": "Start Game",
-  "game04ScreenCompleteTitle": "Speed Challenge Complete! 🎉",
+  "game04ScreenCompleteTitle": "Speed Challenge Complete!",
   "game04ScreenCompleteMessage": "Time: {time}s",
   "@game04ScreenCompleteMessage": {
     "placeholders": {
@@ -149,6 +149,7 @@
       }
     }
   },
-  "game04ScreenReplayButton": "Play Again",
+  "game04ScreenListButton": "Back to List",
+  "game04ScreenReplayButton": "New Game",
   "game04ScreenRuleChangeFeedback": "Rule Change!"
 }

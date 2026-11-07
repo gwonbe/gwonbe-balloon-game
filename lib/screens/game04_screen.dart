@@ -295,13 +295,22 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
   }
 
   Widget _buildCompleteOverlay() {
-    return buildDialogCard(
+    return GameDialogOverlay(
       title: l10n.game04ScreenCompleteTitle,
       message: l10n.game04ScreenCompleteMessage(
         _formatTime(_elapsedMilliseconds),
       ),
-      primaryLabel: l10n.game04ScreenReplayButton,
-      onPrimaryAction: _startGame,
+      buttons: [
+        GameDialogButton(
+          label: l10n.game04ScreenListButton,
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        GameDialogButton(
+          label: l10n.game04ScreenReplayButton,
+          isPrimary: true,
+          onPressed: _startGame,
+        ),
+      ],
     );
   }
 

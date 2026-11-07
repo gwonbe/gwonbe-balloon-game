@@ -239,7 +239,7 @@ abstract class AppLocalizations {
   /// No description provided for @game01ScreenLevelClearedTitle.
   ///
   /// In en, this message translates to:
-  /// **'Level {level} Cleared! 🎉'**
+  /// **'Level {level} Cleared!'**
   String game01ScreenLevelClearedTitle(int level);
 
   /// No description provided for @game01ScreenLevelClearedMessage.
@@ -455,7 +455,7 @@ abstract class AppLocalizations {
   /// No description provided for @game04ScreenCompleteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Speed Challenge Complete! 🎉'**
+  /// **'Speed Challenge Complete!'**
   String get game04ScreenCompleteTitle;
 
   /// No description provided for @game04ScreenCompleteMessage.
@@ -464,10 +464,16 @@ abstract class AppLocalizations {
   /// **'Time: {time}s'**
   String game04ScreenCompleteMessage(String time);
 
+  /// No description provided for @game04ScreenListButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to List'**
+  String get game04ScreenListButton;
+
   /// No description provided for @game04ScreenReplayButton.
   ///
   /// In en, this message translates to:
-  /// **'Play Again'**
+  /// **'New Game'**
   String get game04ScreenReplayButton;
 
   /// No description provided for @game04ScreenRuleChangeFeedback.

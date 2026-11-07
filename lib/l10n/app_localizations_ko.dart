@@ -87,7 +87,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String game01ScreenLevelClearedTitle(int level) {
-    return '$level단계 클리어! 🎉';
+    return '$level단계 클리어!';
   }
 
   @override
@@ -209,7 +209,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game04ScreenStartButton => '게임 시작';
 
   @override
-  String get game04ScreenCompleteTitle => '스피드 챌린지 완료! 🎉';
+  String get game04ScreenCompleteTitle => '스피드 챌린지 완료!';
 
   @override
   String game04ScreenCompleteMessage(String time) {
@@ -217,7 +217,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get game04ScreenReplayButton => '다시하기';
+  String get game04ScreenListButton => '목록으로';
+
+  @override
+  String get game04ScreenReplayButton => '새로 시작';
 
   @override
   String get game04ScreenRuleChangeFeedback => '룰 체인지!';

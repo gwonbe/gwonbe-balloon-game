@@ -155,10 +155,10 @@ class _GameListScreenState extends State<GameListScreen> {
             },
           ),
           Positioned(
-            bottom: 12,
+            bottom: 16,
             left: 0,
             right: 0,
-            child: Center(child: AppVersionText(color: Colors.black)),
+            child: Center(child: AppVersionText(color: Colors.white)),
           ),
         ],
       ),
