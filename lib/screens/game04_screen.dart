@@ -146,6 +146,7 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
       balloon.popped = true;
       _poppedCount++;
     });
+    playBalloonPopSfx();
 
     if (_poppedCount == _kBalloonCount) {
       _finishGame();

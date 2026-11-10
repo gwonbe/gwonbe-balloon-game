@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:balloon_game/l10n/app_localizations.dart';
 import 'package:balloon_game/utils/app_bgm.dart';
 import 'package:balloon_game/utils/app_const.dart';
@@ -16,6 +17,13 @@ import 'package:flutter/material.dart';
 /// - 일시정지 버튼(확인창) 및 공용 다이얼로그 UI
 abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   final BgmPlayer _bgm = BgmPlayer();
+  final AudioPlayer _popSfxPlayer = AudioPlayer();
+  late final Future<void> _popSfxReady = _popSfxPlayer.setAudioContext(
+    AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers).build(),
+  );
+  Future<void> _popSfxQueue = Future<void>.value();
+  Completer<void>? _activePopSfxCompletion;
+  bool _popSfxDisposed = false;
   bool _isPaused = false;
   bool _isDialogOpen = false;
 
@@ -104,6 +112,35 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     _bgm.stop();
   }
 
+  /// 재생 중인 효과음이 끝나면 대기 중인 풍선 효과음을 순서대로 재생한다.
+  void playBalloonPopSfx() {
+    if (_popSfxDisposed) return;
+    _popSfxQueue = _popSfxQueue.then((_) => _playNextBalloonPopSfx());
+  }
+
+  Future<void> _playNextBalloonPopSfx() async {
+    if (_popSfxDisposed || !mounted) return;
+    StreamSubscription<void>? completionSubscription;
+    final Completer<void> completion = Completer<void>();
+    _activePopSfxCompletion = completion;
+    try {
+      await _popSfxReady;
+      if (_popSfxDisposed || !mounted) return;
+      completionSubscription = _popSfxPlayer.onPlayerComplete.listen((_) {
+        if (!completion.isCompleted) completion.complete();
+      });
+      await _popSfxPlayer.play(AssetSource(AppConst.fileNameSfxPang));
+      await completion.future;
+    } catch (_) {
+      // 효과음 재생 실패가 게임 진행을 막지 않도록 한다.
+    } finally {
+      await completionSubscription?.cancel();
+      if (identical(_activePopSfxCompletion, completion)) {
+        _activePopSfxCompletion = null;
+      }
+    }
+  }
+
   // ───────── 일시정지 / 재개 ─────────
 
   void _pauseGame() {
@@ -180,6 +217,10 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   void dispose() {
     cancelAllTimers();
     _bgm.dispose();
+    _popSfxDisposed = true;
+    final completion = _activePopSfxCompletion;
+    if (completion != null && !completion.isCompleted) completion.complete();
+    unawaited(_popSfxPlayer.dispose());
 
     unawaited(saveBestScore());
 

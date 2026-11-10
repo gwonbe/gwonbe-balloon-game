@@ -467,6 +467,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   void _popBalloon(Balloon balloon) {
     if (_status != _GameStatus.playing || isPaused || balloon.isPopping) return;
     balloon.isPopping = true;
+    playBalloonPopSfx();
     _frameNotifier.notify();
   }
 

@@ -268,6 +268,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
       setState(() => _cells[index].popped = true);
       _showFeedback(false);
     }
+    playBalloonPopSfx();
   }
 
   // ───────── UI ─────────

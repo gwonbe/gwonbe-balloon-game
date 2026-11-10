@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 class AppConst {
   AppConst._();
 
+  // ───────── 음악 ─────────
+  static const fileNameBgmHome = 'music_home_001_0-85.mp3';
+  static const fileNameBgmGame = 'music_game_001_0-82.mp3';
+  static const fileNameSfxPang = 'sound_pang_001.m4a';
+
   // ───────── 메인 색상 ─────────
   static const Color mainColor = Color(0xFFE01F66);
   static const Color bgColor = Color(0xFFB8E3F3);
