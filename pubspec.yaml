@@ -34,7 +34,7 @@ flutter:
     - assets/home_001_en.png
     - assets/music_game_001_0-82.mp3
     - assets/music_home_001_0-85.mp3
-    - assets/sound_pang_001.m4a
+    - assets/sound_pop_001.m4a
 
 flutter_launcher_icons:
   android: true
