@@ -1,4 +1,4 @@
-import 'package:balloon_game/utils/app_const.dart';
+import 'package:pangteojyo/utils/app_const.dart';
 
 import 'bgm_player.dart';
 

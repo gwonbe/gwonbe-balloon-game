@@ -1,4 +1,4 @@
-import 'package:balloon_game/utils/app_const.dart';
+import 'package:pangteojyo/utils/app_const.dart';
 import 'package:flutter/material.dart';
 
 /// 상단 정보 칩 (아이콘 + 값 + 단위).

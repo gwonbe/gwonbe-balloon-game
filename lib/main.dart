@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:balloon_game/l10n/app_localizations.dart';
+import 'package:pangteojyo/l10n/app_localizations.dart';
 
 import 'screens/home_screen.dart';
 

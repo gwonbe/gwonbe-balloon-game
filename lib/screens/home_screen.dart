@@ -1,8 +1,8 @@
-import 'package:balloon_game/l10n/app_localizations.dart';
-import 'package:balloon_game/screens/game_list_screen.dart';
-import 'package:balloon_game/utils/app_bgm.dart';
-import 'package:balloon_game/utils/app_const.dart';
-import 'package:balloon_game/widgets/app_version_text.dart';
+import 'package:pangteojyo/l10n/app_localizations.dart';
+import 'package:pangteojyo/screens/game_list_screen.dart';
+import 'package:pangteojyo/utils/app_bgm.dart';
+import 'package:pangteojyo/utils/app_const.dart';
+import 'package:pangteojyo/widgets/app_version_text.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {

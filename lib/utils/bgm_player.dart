@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:balloon_game/utils/app_const.dart';
+import 'package:pangteojyo/utils/app_const.dart';
 
 /// 게임 공통 배경음악 플레이어.
 /// - 음악이 끝나면 [repeatDelay] 후 자동으로 다시 재생

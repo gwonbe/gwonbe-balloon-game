@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:balloon_game/l10n/app_localizations.dart';
-import 'package:balloon_game/utils/app_const.dart';
-import 'package:balloon_game/utils/base_game_state.dart';
-import 'package:balloon_game/utils/game_storage.dart';
-import 'package:balloon_game/widgets/balloon_painter.dart';
-import 'package:balloon_game/widgets/info_chip.dart';
+import 'package:pangteojyo/l10n/app_localizations.dart';
+import 'package:pangteojyo/utils/app_const.dart';
+import 'package:pangteojyo/utils/base_game_state.dart';
+import 'package:pangteojyo/utils/game_storage.dart';
+import 'package:pangteojyo/widgets/balloon_painter.dart';
+import 'package:pangteojyo/widgets/info_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 

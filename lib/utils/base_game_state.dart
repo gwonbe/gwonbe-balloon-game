@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:balloon_game/l10n/app_localizations.dart';
-import 'package:balloon_game/utils/app_bgm.dart';
-import 'package:balloon_game/utils/app_const.dart';
-import 'package:balloon_game/utils/bgm_player.dart';
-import 'package:balloon_game/utils/game_storage.dart';
-import 'package:balloon_game/widgets/balloon_painter.dart';
+import 'package:pangteojyo/l10n/app_localizations.dart';
+import 'package:pangteojyo/utils/app_bgm.dart';
+import 'package:pangteojyo/utils/app_const.dart';
+import 'package:pangteojyo/utils/bgm_player.dart';
+import 'package:pangteojyo/utils/game_storage.dart';
+import 'package:pangteojyo/widgets/balloon_painter.dart';
 import 'package:flutter/material.dart';
 
 // ════════════════════════════════════════════════════════════════

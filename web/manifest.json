@@ -1,11 +1,11 @@
 {
-    "name": "balloon_game",
-    "short_name": "balloon_game",
+    "name": "pangteojyo",
+    "short_name": "pangteojyo",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "balloon_game",
+    "description": "pangteojyo",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

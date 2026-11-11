@@ -1,4 +1,4 @@
-package com.gwonbe.balloongame.balloon_game
+package com.kkumuragi.pangteojyo
 
 import io.flutter.embedding.android.FlutterActivity
 

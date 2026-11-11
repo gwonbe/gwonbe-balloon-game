@@ -1,6 +1,6 @@
-name: balloon_game
+name: pangteojyo
 
-description: "balloon_game"
+description: "pangteojyo"
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
