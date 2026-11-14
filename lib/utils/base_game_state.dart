@@ -364,6 +364,12 @@ class GameDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 모든 다이얼로그 버튼은 같은 크기를 사용한다. 버튼 두 개가 나란히
+    // 들어가도록 화면 너비에 맞춰 폭을 정하고, 한 개만 있어도 같은 폭을 쓴다.
+    final double contentWidth =
+        (MediaQuery.sizeOf(context).width - 136).clamp(0.0, 504.0);
+    final double buttonWidth = ((contentWidth - 12) / 2).clamp(96.0, 160.0);
+
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -393,41 +399,104 @@ class GameDialog extends StatelessWidget {
             alignment: WrapAlignment.center,
             spacing: 12,
             runSpacing: 8,
-            children: [for (final b in buttons) _buildButton(b)],
+            children: [
+              for (final b in buttons) _buildButton(b, buttonWidth),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildButton(GameDialogButton b) {
-    const padding = EdgeInsets.symmetric(horizontal: 24, vertical: 12);
-    const textStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
-
-    if (b.isPrimary) {
-      return ElevatedButton(
-        onPressed: b.onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppConst.dialogPrimaryButton,
-          foregroundColor: AppConst.dialogPrimaryButtonText,
-          padding: padding,
-        ),
-        child: Text(b.label, style: textStyle),
-      );
-    }
-
-    return OutlinedButton(
+  Widget _buildButton(GameDialogButton b, double width) {
+    return _PressableDialogButton(
+      label: b.label,
+      isPrimary: b.isPrimary,
       onPressed: b.onPressed,
-      style: OutlinedButton.styleFrom(
-        backgroundColor: AppConst.dialogSecondaryButton,
-        foregroundColor: AppConst.dialogSecondaryButtonText,
-        side: const BorderSide(
-          color: AppConst.dialogSecondaryButtonBorder,
-          width: 1.5,
+      width: width,
+    );
+  }
+}
+
+class _PressableDialogButton extends StatefulWidget {
+  final String label;
+  final bool isPrimary;
+  final VoidCallback onPressed;
+  final double width;
+
+  const _PressableDialogButton({
+    required this.label,
+    required this.isPrimary,
+    required this.onPressed,
+    required this.width,
+  });
+
+  @override
+  State<_PressableDialogButton> createState() =>
+      _PressableDialogButtonState();
+}
+
+class _PressableDialogButtonState extends State<_PressableDialogButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color faceColor = widget.isPrimary
+        ? AppConst.dialogPrimaryButton
+        : AppConst.dialogSecondaryButton;
+    final Color textColor = widget.isPrimary
+        ? AppConst.dialogPrimaryButtonText
+        : AppConst.dialogSecondaryButtonText;
+
+    return Semantics(
+      button: true,
+      label: widget.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 80),
+          curve: Curves.easeOut,
+          transform: Matrix4.translationValues(0, _pressed ? 4 : 0, 0),
+          width: widget.width,
+          height: 50,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: faceColor,
+            borderRadius: BorderRadius.circular(12),
+            border: widget.isPrimary
+                ? null
+                : Border.all(
+                    color: AppConst.dialogSecondaryButtonBorder,
+                    width: 1.5,
+                  ),
+            boxShadow: [
+              BoxShadow(
+                color: widget.isPrimary
+                    ? const Color(0xFF9C1748).withValues(alpha: 0.65)
+                    : Colors.black.withValues(alpha: 0.22),
+                offset: Offset(0, _pressed ? 1 : 5),
+                blurRadius: _pressed ? 1 : 0,
+              ),
+            ],
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              widget.label,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+          ),
         ),
-        padding: padding,
       ),
-      child: Text(b.label, style: textStyle),
     );
   }
 }
@@ -558,25 +627,68 @@ class StartOverlay extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
+              _PressableStartButton(
+                label: buttonLabel,
                 onPressed: onStart,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 14,
-                  ),
-                  backgroundColor: AppConst.mainColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(
-                  buttonLabel,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PressableStartButton extends StatefulWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _PressableStartButton({
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  State<_PressableStartButton> createState() => _PressableStartButtonState();
+}
+
+class _PressableStartButtonState extends State<_PressableStartButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: widget.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) => setState(() => _pressed = false),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTap: widget.onPressed,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 80),
+          curve: Curves.easeOut,
+          transform: Matrix4.translationValues(0, _pressed ? 4 : 0, 0),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+          decoration: BoxDecoration(
+            color: AppConst.mainColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF9C1748).withValues(alpha: 0.65),
+                offset: Offset(0, _pressed ? 1 : 5),
+                blurRadius: _pressed ? 1 : 0,
+              ),
+            ],
+          ),
+          child: Text(
+            widget.label,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
