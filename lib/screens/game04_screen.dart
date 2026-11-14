@@ -5,6 +5,7 @@ import 'package:pangteojyo/l10n/app_localizations.dart';
 import 'package:pangteojyo/utils/app_const.dart';
 import 'package:pangteojyo/utils/base_game_state.dart';
 import 'package:pangteojyo/utils/game_storage.dart';
+import 'package:pangteojyo/utils/game_timer_group.dart';
 import 'package:pangteojyo/widgets/info_chip.dart';
 import 'package:flutter/material.dart';
 
@@ -52,8 +53,7 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
   final Random _random = Random();
   final Stopwatch _stopwatch = Stopwatch();
 
-  Timer? _clockTimer;
-  Timer? _ruleMessageTimer;
+  final GameTimerGroup _timers = GameTimerGroup();
   _GameStatus _status = _GameStatus.ready;
   List<_TargetRule> _rules = [];
   List<_Balloon> _balloons = [];
@@ -73,16 +73,14 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
 
   @override
   void cancelAllTimers() {
-    _clockTimer?.cancel();
-    _ruleMessageTimer?.cancel();
+    _timers.cancelAll();
     _stopwatch.stop();
   }
 
   @override
   void startTimers() {
     _stopwatch.start();
-    _clockTimer?.cancel();
-    _clockTimer = Timer.periodic(_kClockRefresh, (_) {
+    _timers.periodic('game-clock', _kClockRefresh, () {
       if (_status != _GameStatus.playing || isPaused) return;
       final int elapsed = _stopwatch.elapsedMilliseconds;
       if (elapsed ~/ 50 != _elapsedMilliseconds ~/ 50) {
@@ -156,18 +154,24 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
   }
 
   void _showRuleChangeMessage() {
-    _ruleMessageTimer?.cancel();
+    _timers.cancel('rule-feedback');
     setState(() => _feedbackText = l10n.game04ScreenRuleChangeFeedback);
-    _ruleMessageTimer = Timer(_kRuleFeedbackDuration, () {
-      if (!mounted) return;
+    _timers.once('rule-feedback', _kRuleFeedbackDuration, () {
+      if (!mounted || _status != _GameStatus.playing || isPaused) return;
       setState(() => _feedbackText = null);
     });
   }
 
   @override
   void onPause() {
-    _ruleMessageTimer?.cancel();
+    _timers.cancel('rule-feedback');
     _feedbackText = null;
+  }
+
+  @override
+  void dispose() {
+    _timers.dispose();
+    super.dispose();
   }
 
   void _finishGame() {

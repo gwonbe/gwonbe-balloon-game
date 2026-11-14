@@ -4,6 +4,7 @@ import 'package:pangteojyo/l10n/app_localizations.dart';
 import 'package:pangteojyo/utils/app_const.dart';
 import 'package:pangteojyo/utils/base_game_state.dart';
 import 'package:pangteojyo/utils/game_storage.dart';
+import 'package:pangteojyo/utils/game_timer_group.dart';
 import 'package:pangteojyo/widgets/info_chip.dart';
 import 'package:flutter/material.dart';
 
@@ -151,10 +152,8 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   late AppLocalizations l10n;
   final Random _random = Random();
 
-  Timer? _gameTimer;
+  final GameTimerGroup _timers = GameTimerGroup();
   final Stopwatch _gameStopwatch = Stopwatch();
-  Timer? _feedbackTimer; // 정답/오답 메시지 자동으로 사라지게
-  Timer? _nextRoundTimer; // 다음 문제로 넘어가기 전 짧은 대기
 
   _GameStatus _status = _GameStatus.ready;
   int _score = 0;
@@ -196,17 +195,14 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
   @override
   void cancelAllTimers() {
-    _gameTimer?.cancel();
-    _feedbackTimer?.cancel();
-    _nextRoundTimer?.cancel();
+    _timers.cancelAll();
     _gameStopwatch.stop();
   }
 
   @override
   void startTimers() {
     _gameStopwatch.start();
-    _gameTimer?.cancel();
-    _gameTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+    _timers.periodic('game-clock', const Duration(milliseconds: 100), () {
       if (_status != _GameStatus.playing || isPaused) return;
 
       final int remainingMilliseconds = _kGameDuration * 1000 - _gameStopwatch.elapsedMilliseconds;
@@ -281,7 +277,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   }
 
   void _showFeedback(bool correct) {
-    _feedbackTimer?.cancel();
+    _timers.cancel('feedback');
 
     setState(() {
       _feedbackCorrect = correct;
@@ -290,17 +286,15 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
           : l10n.game03ScreenIncorrectFeedback;
     });
 
-    _feedbackTimer = Timer(_kFeedbackDuration, () {
-      if (!mounted) return;
+    _timers.once('feedback', _kFeedbackDuration, () {
+      if (!mounted || _status != _GameStatus.playing || isPaused) return;
       setState(() => _feedbackText = null);
     });
   }
 
   void _onDropBalloon(int index) {
     if (_status != _GameStatus.playing || isPaused) return;
-    if (_feedbackText != null ||
-        _nextRoundTimer?.isActive == true ||
-        !_gridActive[index]) {
+    if (_feedbackText != null || !_gridActive[index]) {
       return;
     }
 
@@ -333,17 +327,22 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
       _showFeedback(true);
 
       // 메시지와 정답 카운트를 잠깐 보여준 뒤 다음 문제로 이동한다.
-      _nextRoundTimer?.cancel();
-      _nextRoundTimer = Timer(_kNextRoundDelay, () {
+      _timers.once('next-round', _kNextRoundDelay, () {
         if (!mounted || _status != _GameStatus.playing || isPaused) return;
 
-        _feedbackTimer?.cancel();
+        _timers.cancel('feedback');
         setState(() {
           _feedbackText = null;
           _prepareNextRound();
         });
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _timers.dispose();
+    super.dispose();
   }
 
   // ───────── UI ─────────
