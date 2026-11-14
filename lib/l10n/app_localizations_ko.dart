@@ -99,7 +99,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game01ScreenNextLevelButton => '다음 단계';
 
   @override
-  String get game01ScreenGameOverTitle => '게임 종료! 😢';
+  String get game01ScreenGameOverTitle => '게임 종료!';
 
   @override
   String game01ScreenGameOverMessage(int maxMiss) {
@@ -110,7 +110,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game01ScreenRetryButton => '다시 시도';
 
   @override
-  String get game01ScreenAllClearedTitle => '전체 클리어! 🏆';
+  String get game01ScreenAllClearedTitle => '전체 클리어!';
 
   @override
   String game01ScreenAllClearedMessage(int levelCount) {

@@ -72,7 +72,7 @@
     }
   },
   "game01ScreenNextLevelButton": "Next Level",
-  "game01ScreenGameOverTitle": "Game Over! 😢",
+  "game01ScreenGameOverTitle": "Game Over!",
   "game01ScreenGameOverMessage": "You lost all {maxMiss} lives!\nAvoid missing balloons and tapping bombs!",
   "@game01ScreenGameOverMessage": {
     "placeholders": {
@@ -82,7 +82,7 @@
     }
   },
   "game01ScreenRetryButton": "Try Again",
-  "game01ScreenAllClearedTitle": "All Levels Cleared! 🏆",
+  "game01ScreenAllClearedTitle": "All Levels Cleared!",
   "game01ScreenAllClearedMessage": "You completed all {levelCount} levels!\nAmazing job!",
   "@game01ScreenAllClearedMessage": {
     "placeholders": {

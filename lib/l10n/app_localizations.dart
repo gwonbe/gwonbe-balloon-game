@@ -257,7 +257,7 @@ abstract class AppLocalizations {
   /// No description provided for @game01ScreenGameOverTitle.
   ///
   /// In en, this message translates to:
-  /// **'Game Over! 😢'**
+  /// **'Game Over!'**
   String get game01ScreenGameOverTitle;
 
   /// No description provided for @game01ScreenGameOverMessage.
@@ -275,7 +275,7 @@ abstract class AppLocalizations {
   /// No description provided for @game01ScreenAllClearedTitle.
   ///
   /// In en, this message translates to:
-  /// **'All Levels Cleared! 🏆'**
+  /// **'All Levels Cleared!'**
   String get game01ScreenAllClearedTitle;
 
   /// No description provided for @game01ScreenAllClearedMessage.

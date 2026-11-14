@@ -101,7 +101,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game01ScreenNextLevelButton => 'Next Level';
 
   @override
-  String get game01ScreenGameOverTitle => 'Game Over! 😢';
+  String get game01ScreenGameOverTitle => 'Game Over!';
 
   @override
   String game01ScreenGameOverMessage(int maxMiss) {
@@ -112,7 +112,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game01ScreenRetryButton => 'Try Again';
 
   @override
-  String get game01ScreenAllClearedTitle => 'All Levels Cleared! 🏆';
+  String get game01ScreenAllClearedTitle => 'All Levels Cleared!';
 
   @override
   String game01ScreenAllClearedMessage(int levelCount) {

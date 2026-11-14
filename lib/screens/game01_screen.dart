@@ -191,15 +191,50 @@ class _ExplosionPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final Offset center = Offset(size.width / 2, size.height / 2);
     final double fade = (1 - progress).clamp(0.0, 1.0);
-    final double radius = size.width * (0.14 + progress * 0.31);
+    final double radius = size.width * (0.19 + progress * 0.42);
 
     canvas.drawCircle(
       center,
-      radius * 0.62,
+      radius * 0.78,
       Paint()
-        ..color = const Color(0xFFFF8F00).withValues(alpha: fade * 0.5)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+        ..color = const Color(0xFFFF5722).withValues(alpha: fade * 0.52)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
     );
+
+    // Curved flame tongues expand around the blast and fade with the bomb.
+    for (int i = 0; i < 12; i++) {
+      final double angle = (i * pi / 6) + progress * 0.22;
+      final double innerRadius = radius * (0.4 + (i.isEven ? 0.12 : 0));
+      final double outerRadius = radius * (1.0 + (i % 3) * 0.14);
+      final double halfWidth = radius * (i.isEven ? 0.18 : 0.14);
+      final Offset direction = Offset(cos(angle), sin(angle));
+      final Offset tangent = Offset(-direction.dy, direction.dx);
+      final Offset base = center + direction * innerRadius;
+      final Offset tip = center + direction * outerRadius;
+      final double curveRadius = (innerRadius + outerRadius) * 0.42;
+      final Path flame = Path()
+        ..moveTo(base.dx - tangent.dx * halfWidth, base.dy - tangent.dy * halfWidth)
+        ..quadraticBezierTo(
+          center.dx + direction.dx * curveRadius - tangent.dx * halfWidth * 0.45,
+          center.dy + direction.dy * curveRadius - tangent.dy * halfWidth * 0.45,
+          tip.dx,
+          tip.dy,
+        )
+        ..quadraticBezierTo(
+          center.dx + direction.dx * curveRadius + tangent.dx * halfWidth * 0.45,
+          center.dy + direction.dy * curveRadius + tangent.dy * halfWidth * 0.45,
+          base.dx + tangent.dx * halfWidth,
+          base.dy + tangent.dy * halfWidth,
+        )
+        ..close();
+      canvas.drawPath(
+        flame,
+        Paint()
+          ..color = (i.isEven ? const Color(0xFFFF5722) : const Color(0xFFFF9800))
+              .withValues(alpha: fade),
+      );
+    }
+
     canvas.drawCircle(
       center,
       radius * 0.72,
@@ -208,23 +243,13 @@ class _ExplosionPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 5 * fade,
     );
-
-    final Paint rayPaint = Paint()
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 4 * fade;
-    for (int i = 0; i < 8; i++) {
-      final double angle = i * pi / 4;
-      final double innerRadius = radius * 0.52;
-      final double outerRadius = radius * (0.78 + (i.isEven ? 0.2 : 0));
-      rayPaint.color = i.isEven
-          ? const Color(0xFFFF5722).withValues(alpha: fade)
-          : const Color(0xFFFFC107).withValues(alpha: fade);
-      canvas.drawLine(
-        center + Offset(cos(angle) * innerRadius, sin(angle) * innerRadius),
-        center + Offset(cos(angle) * outerRadius, sin(angle) * outerRadius),
-        rayPaint,
-      );
-    }
+    canvas.drawCircle(
+      center,
+      radius * 0.34,
+      Paint()
+        ..color = const Color(0xFFFFF176).withValues(alpha: fade * 0.95)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
   }
 
   @override

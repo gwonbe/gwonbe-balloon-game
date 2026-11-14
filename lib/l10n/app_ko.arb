@@ -72,7 +72,7 @@
     }
   },
   "game01ScreenNextLevelButton": "다음 단계",
-  "game01ScreenGameOverTitle": "게임 종료! 😢",
+  "game01ScreenGameOverTitle": "게임 종료!",
   "game01ScreenGameOverMessage": "생명 {maxMiss}개를 모두 잃었어요!\n풍선을 놓치거나 폭탄을 터치하지 않게 조심하세요!",
   "@game01ScreenGameOverMessage": {
     "placeholders": {
@@ -82,7 +82,7 @@
     }
   },
   "game01ScreenRetryButton": "다시 시도",
-  "game01ScreenAllClearedTitle": "전체 클리어! 🏆",
+  "game01ScreenAllClearedTitle": "전체 클리어!",
   "game01ScreenAllClearedMessage": "{levelCount}개 단계를 모두 완료했어요!\n정말 대단해요!",
   "@game01ScreenAllClearedMessage": {
     "placeholders": {
