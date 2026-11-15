@@ -18,11 +18,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game01Title => '둥실둥실';
 
   @override
-  String get game01Description => '풍선이 하늘로 올라가기 전에 터뜨리세요!';
+  String get game01Description => '풍선을 터뜨리며 오래 버텨 최고 기록에 도전하세요!';
 
   @override
-  String game01BestScore(int score, int levelCount) {
-    return '최고 기록 : $score / $levelCount 단계 클리어';
+  String game01BestScore(int score) {
+    return '최고 기록 : 풍선 $score개';
   }
 
   @override
@@ -78,8 +78,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game01ScreenMissUnit => '개';
 
   @override
-  String game01ScreenStartMessage(int levelCount, int maxMiss) {
-    return '총 $levelCount단계\n풍선을 놓치거나 폭탄을 터치하면 생명이 줄어요!\n생명 $maxMiss개를 모두 잃으면 게임 종료!\n단계가 올라갈수록 풍선이 더 빨라져요!';
+  String get game01ScreenBalloonUnit => '개';
+
+  @override
+  String game01ScreenStartMessage(int maxMiss) {
+    return '풍선을 놓치거나 폭탄을 터치하면 생명이 줄어요!\n생명 $maxMiss개를 모두 잃으면 게임 종료!\n시간이 지날수록 풍선이 더 빠르고 자주 나와요!';
   }
 
   @override
@@ -102,8 +105,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game01ScreenGameOverTitle => '게임 종료!';
 
   @override
-  String game01ScreenGameOverMessage(int maxMiss) {
-    return '생명 $maxMiss개를 모두 잃었어요!\n풍선을 놓치거나 폭탄을 터치하지 않게 조심하세요!';
+  String game01ScreenGameOverMessage(int maxMiss, int score) {
+    return '생명 $maxMiss개를 모두 잃었어요!\n이번 기록: 풍선 $score개';
   }
 
   @override

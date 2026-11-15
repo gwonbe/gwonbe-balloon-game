@@ -7,10 +7,12 @@ import 'package:pangteojyo/utils/app_const.dart';
 class BgmPlayer {
   final String assetPath;
   final Duration repeatDelay;
+  final Duration replayPosition;
 
   BgmPlayer({
     this.assetPath = AppConst.fileNameBgmGame,
     this.repeatDelay = const Duration(seconds: 2),
+    this.replayPosition = Duration.zero,
   });
 
   final AudioPlayer _player = AudioPlayer();
@@ -31,9 +33,9 @@ class BgmPlayer {
     await _play();
   }
 
-  Future<void> _play() async {
+  Future<void> _play({Duration? position}) async {
     _waitingReplay = false;
-    await _player.play(AssetSource(assetPath));
+    await _player.play(AssetSource(assetPath), position: position);
   }
 
   void _scheduleReplay() {
@@ -41,7 +43,7 @@ class BgmPlayer {
     _waitingReplay = true;
     _repeatTimer?.cancel();
     _repeatTimer = Timer(repeatDelay, () {
-      if (_active && !_disposed) _play();
+      if (_active && !_disposed) _play(position: replayPosition);
     });
   }
 

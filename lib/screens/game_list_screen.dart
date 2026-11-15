@@ -86,7 +86,7 @@ class _GameListScreenState extends State<GameListScreen> {
         color: AppConst.game01Color,
         builder: (context) => const Game01Screen(),
         bestScoreKey: GameStorage.bestScoreGame01,
-        bestTextBuilder: (best) => l10n.game01BestScore(best, kLevelCount),
+        bestTextBuilder: l10n.game01BestScore,
       ),
       GameItem(
         title: l10n.game02Title,

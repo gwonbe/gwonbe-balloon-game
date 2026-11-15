@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 /// - BGM 재생/정지/일시정지/재개/해제
 /// - 일시정지 버튼(확인창) 및 공용 다이얼로그 UI
 abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
-  final BgmPlayer _bgm = BgmPlayer();
+  late final BgmPlayer _bgm = createBgmPlayer();
   final AudioPlayer _popSfxPlayer = AudioPlayer();
   late final Future<void> _popSfxReady = _popSfxPlayer.setAudioContext(
     AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers).build(),
@@ -40,6 +40,9 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
 
   /// 최고 기록 저장용 SharedPreferences 키
   String get bestScoreKey;
+
+  /// Override when a game needs a different background music repeat point.
+  BgmPlayer createBgmPlayer() => BgmPlayer();
 
   /// 이 게임에서 전달할 현재 기록
   int get currentScore;
@@ -366,8 +369,10 @@ class GameDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     // 모든 다이얼로그 버튼은 같은 크기를 사용한다. 버튼 두 개가 나란히
     // 들어가도록 화면 너비에 맞춰 폭을 정하고, 한 개만 있어도 같은 폭을 쓴다.
-    final double contentWidth =
-        (MediaQuery.sizeOf(context).width - 136).clamp(0.0, 504.0);
+    final double contentWidth = (MediaQuery.sizeOf(context).width - 136).clamp(
+      0.0,
+      504.0,
+    );
     final double buttonWidth = ((contentWidth - 12) / 2).clamp(96.0, 160.0);
 
     return Container(
@@ -399,9 +404,7 @@ class GameDialog extends StatelessWidget {
             alignment: WrapAlignment.center,
             spacing: 12,
             runSpacing: 8,
-            children: [
-              for (final b in buttons) _buildButton(b, buttonWidth),
-            ],
+            children: [for (final b in buttons) _buildButton(b, buttonWidth)],
           ),
         ],
       ),
@@ -432,8 +435,7 @@ class _PressableDialogButton extends StatefulWidget {
   });
 
   @override
-  State<_PressableDialogButton> createState() =>
-      _PressableDialogButtonState();
+  State<_PressableDialogButton> createState() => _PressableDialogButtonState();
 }
 
 class _PressableDialogButtonState extends State<_PressableDialogButton> {
@@ -627,10 +629,7 @@ class StartOverlay extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              _PressableStartButton(
-                label: buttonLabel,
-                onPressed: onStart,
-              ),
+              _PressableStartButton(label: buttonLabel, onPressed: onStart),
             ],
           ),
         ),
@@ -643,10 +642,7 @@ class _PressableStartButton extends StatefulWidget {
   final String label;
   final VoidCallback onPressed;
 
-  const _PressableStartButton({
-    required this.label,
-    required this.onPressed,
-  });
+  const _PressableStartButton({required this.label, required this.onPressed});
 
   @override
   State<_PressableStartButton> createState() => _PressableStartButtonState();

@@ -18,11 +18,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game01Title => 'Floating Balloons';
 
   @override
-  String get game01Description => 'Pop the balloons before they float away!';
+  String get game01Description =>
+      'Pop balloons and survive as long as you can!';
 
   @override
-  String game01BestScore(int score, int levelCount) {
-    return 'Best Score: $score / $levelCount Levels Cleared';
+  String game01BestScore(int score) {
+    return 'Best: $score balloons popped';
   }
 
   @override
@@ -80,8 +81,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game01ScreenMissUnit => '';
 
   @override
-  String game01ScreenStartMessage(int levelCount, int maxMiss) {
-    return 'Complete all $levelCount levels!\nMissing a balloon or tapping a bomb costs a life!\nLose all $maxMiss lives and the game ends.\nBalloons get faster each level!';
+  String get game01ScreenBalloonUnit => 'popped';
+
+  @override
+  String game01ScreenStartMessage(int maxMiss) {
+    return 'Missing a balloon or tapping a bomb costs a life!\nLose all $maxMiss lives and the game ends.\nBalloons get faster and appear more often over time!';
   }
 
   @override
@@ -104,8 +108,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game01ScreenGameOverTitle => 'Game Over!';
 
   @override
-  String game01ScreenGameOverMessage(int maxMiss) {
-    return 'You lost all $maxMiss lives!\nAvoid missing balloons and tapping bombs!';
+  String game01ScreenGameOverMessage(int maxMiss, int score) {
+    return 'You lost all $maxMiss lives!\nScore: $score balloons popped';
   }
 
   @override

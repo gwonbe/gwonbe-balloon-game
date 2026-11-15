@@ -3,14 +3,11 @@
   "homeScreenTapToStart": "Tap to Start!",
   "gameListScreenTitle": "Select a Game",
   "game01Title": "Floating Balloons",
-  "game01Description": "Pop the balloons before they float away!",
-  "game01BestScore": "Best Score: {score} / {levelCount} Levels Cleared",
+  "game01Description": "Pop balloons and survive as long as you can!",
+  "game01BestScore": "Best: {score} balloons popped",
   "@game01BestScore": {
     "placeholders": {
       "score": {
-        "type": "int"
-      },
-      "levelCount": {
         "type": "int"
       }
     }
@@ -45,12 +42,10 @@
   "baseGameStateContinueButton": "Continue",
   "game01ScreenSecondUnit": "sec",
   "game01ScreenMissUnit": "",
-  "game01ScreenStartMessage": "Complete all {levelCount} levels!\nMissing a balloon or tapping a bomb costs a life!\nLose all {maxMiss} lives and the game ends.\nBalloons get faster each level!",
+  "game01ScreenBalloonUnit": "popped",
+  "game01ScreenStartMessage": "Missing a balloon or tapping a bomb costs a life!\nLose all {maxMiss} lives and the game ends.\nBalloons get faster and appear more often over time!",
   "@game01ScreenStartMessage": {
     "placeholders": {
-      "levelCount": {
-        "type": "int"
-      },
       "maxMiss": {
         "type": "int"
       }
@@ -73,10 +68,13 @@
   },
   "game01ScreenNextLevelButton": "Next Level",
   "game01ScreenGameOverTitle": "Game Over!",
-  "game01ScreenGameOverMessage": "You lost all {maxMiss} lives!\nAvoid missing balloons and tapping bombs!",
+  "game01ScreenGameOverMessage": "You lost all {maxMiss} lives!\nScore: {score} balloons popped",
   "@game01ScreenGameOverMessage": {
     "placeholders": {
       "maxMiss": {
+        "type": "int"
+      },
+      "score": {
         "type": "int"
       }
     }

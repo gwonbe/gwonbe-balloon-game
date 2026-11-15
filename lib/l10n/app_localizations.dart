@@ -119,14 +119,14 @@ abstract class AppLocalizations {
   /// No description provided for @game01Description.
   ///
   /// In en, this message translates to:
-  /// **'Pop the balloons before they float away!'**
+  /// **'Pop balloons and survive as long as you can!'**
   String get game01Description;
 
   /// No description provided for @game01BestScore.
   ///
   /// In en, this message translates to:
-  /// **'Best Score: {score} / {levelCount} Levels Cleared'**
-  String game01BestScore(int score, int levelCount);
+  /// **'Best: {score} balloons popped'**
+  String game01BestScore(int score);
 
   /// No description provided for @game02Title.
   ///
@@ -224,11 +224,17 @@ abstract class AppLocalizations {
   /// **''**
   String get game01ScreenMissUnit;
 
+  /// No description provided for @game01ScreenBalloonUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'popped'**
+  String get game01ScreenBalloonUnit;
+
   /// No description provided for @game01ScreenStartMessage.
   ///
   /// In en, this message translates to:
-  /// **'Complete all {levelCount} levels!\nMissing a balloon or tapping a bomb costs a life!\nLose all {maxMiss} lives and the game ends.\nBalloons get faster each level!'**
-  String game01ScreenStartMessage(int levelCount, int maxMiss);
+  /// **'Missing a balloon or tapping a bomb costs a life!\nLose all {maxMiss} lives and the game ends.\nBalloons get faster and appear more often over time!'**
+  String game01ScreenStartMessage(int maxMiss);
 
   /// No description provided for @game01ScreenStartButton.
   ///
@@ -263,8 +269,8 @@ abstract class AppLocalizations {
   /// No description provided for @game01ScreenGameOverMessage.
   ///
   /// In en, this message translates to:
-  /// **'You lost all {maxMiss} lives!\nAvoid missing balloons and tapping bombs!'**
-  String game01ScreenGameOverMessage(int maxMiss);
+  /// **'You lost all {maxMiss} lives!\nScore: {score} balloons popped'**
+  String game01ScreenGameOverMessage(int maxMiss, int score);
 
   /// No description provided for @game01ScreenRetryButton.
   ///

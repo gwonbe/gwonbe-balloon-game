@@ -18,7 +18,7 @@ class Game02Screen extends StatefulWidget {
 // ───────── 상수 ─────────
 
 /// 제한 시간(초)
-const int kGame02Duration = 63;
+const int kGameDuration = 63;
 
 /// 3x3 그리드
 const int _kGridColumns = 3;
@@ -123,7 +123,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
   _GameStatus _status = _GameStatus.ready;
   int _score = 0;
-  int _timeLeft = kGame02Duration;
+  int _timeLeft = kGameDuration;
 
   _Question _question = const _Question(2, 1);
   List<_Cell> _cells = const [];
@@ -158,7 +158,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
     _timers.periodic('game-clock', const Duration(milliseconds: 100), () {
       if (_status != _GameStatus.playing) return;
 
-      final int remainingMilliseconds = kGame02Duration * 1000 - _gameStopwatch.elapsedMilliseconds;
+      final int remainingMilliseconds = kGameDuration * 1000 - _gameStopwatch.elapsedMilliseconds;
       if (remainingMilliseconds <= 0) {
         _endGame();
         return;
@@ -203,7 +203,7 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
 
     setState(() {
       _score = 0;
-      _timeLeft = kGame02Duration;
+      _timeLeft = kGameDuration;
       _status = _GameStatus.playing;
       _feedbackText = null;
     });
