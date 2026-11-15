@@ -283,6 +283,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   LevelConfig get _currentLevel => kLevels[_levelIndex];
 
   int _miss = 0; // 이번 단계에서 잃은 생명 수
+  int _lives = kMaxMiss; // 단계 사이에 이어지는 남은 생명 수
   int _spawnedCount = 0; // 이번 단계에서 이미 생성된 풍선 수
   int _spawnedBombCount = 0;
   int _timeLeft = kLevelDurationSeconds;
@@ -336,6 +337,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
     setState(() {
       _levelIndex = levelIndex;
       _miss = 0; // 단계가 시작될 때마다 미스 초기화
+      if (levelIndex == 0) _lives = kMaxMiss;
       _spawnedCount = 0;
       _spawnedBombCount = 0;
       _playTime = 0;
@@ -398,8 +400,8 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
 
     // 4) 미스가 바뀐 경우에만 화면 전체 갱신
     if (missed > 0) {
-      setState(() => _miss += missed);
-      if (_miss >= kMaxMiss) {
+      _loseLives(missed);
+      if (_lives <= 0) {
         _failLevel();
         return;
       }
@@ -506,8 +508,15 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
     if (_status != _GameStatus.playing || isPaused || bomb.isExploding) return;
     bomb.isExploding = true;
     _frameNotifier.notify();
-    setState(() => _miss++);
-    if (_miss >= kMaxMiss) _failLevel();
+    _loseLives(1);
+    if (_lives <= 0) _failLevel();
+  }
+
+  void _loseLives(int count) {
+    setState(() {
+      _miss += count;
+      _lives = (_lives - count).clamp(0, kMaxMiss).toInt();
+    });
   }
 
   void _removeExplodedBomb(Bomb bomb) {
@@ -522,7 +531,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
     }
   }
 
-  void _retryLevel() => _startLevel(_levelIndex);
+  void _retryLevel() => _startLevel(0);
 
   // ───────── UI ─────────
 
@@ -664,25 +673,41 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
 
   Widget _buildTopBar() {
     return GameTopBar(
-      pauseButton: buildPauseButton(),
+      pauseButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          buildPauseButton(),
+          const SizedBox(width: 6),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (int i = 0; i < kMaxMiss; i++)
+                Padding(
+                  padding: EdgeInsets.only(right: i == kMaxMiss - 1 ? 0 : 1),
+                  child: Icon(
+                    Icons.favorite_rounded,
+                    size: 14,
+                    color: i < _lives
+                        ? AppConst.infoChipIcon
+                        : Colors.transparent,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
       chips: [
         InfoChip(
           icon: Icons.flag,
           value: '${_currentLevel.level}',
           unit: '/${kLevels.length}',
-          width: 90,
-        ),
-        InfoChip(
-          icon: Icons.favorite_rounded,
-          value: '${(kMaxMiss - _miss).clamp(0, kMaxMiss)}',
-          unit: '/$kMaxMiss',
-          width: 95,
+          width: 78,
         ),
         InfoChip(
           icon: Icons.timer,
           value: '$_timeLeft',
           unit: l10n.game01ScreenSecondUnit,
-          width: 90,
+          width: 78,
         ),
       ],
     );
