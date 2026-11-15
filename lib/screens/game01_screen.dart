@@ -33,14 +33,14 @@ const double _kSpeedScale = 1.875;
 /// 실제 풍선보다 터치 영역을 사방으로 20px씩 확장
 const double touchPadding = 20;
 
-/// 난이도는 15초마다 한 단계 오르고, 최대 단계에서 유지된다.
-const int _kDifficultyStageDurationSeconds = 15;
-const int _kMaxDifficultyStage = 8;
+/// 풍선을 13개 터뜨릴 때마다 난이도가 한 단계 오른다.
+const int _kBalloonsPerDifficultyStage = 13;
+const int _kMaxDifficultyStage = 10;
 const double _kInitialBalloonSpawnInterval = 1.4;
-const double _kFinalBalloonSpawnInterval = 0.75;
+const double _kFinalBalloonSpawnInterval = 0.5;
 const double _kInitialBombSpawnInterval = 6.0;
 const double _kFinalBombSpawnInterval = 3.8;
-const double _kMaximumSpeedMultiplier = 1.56;
+const double _kMaximumSpeedMultiplier = 1.72;
 
 enum _GameStatus { ready, playing, gameOver }
 
@@ -260,14 +260,13 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   // 이동 / 스폰 / 남은 시간을 모두 이 Ticker 하나로 처리한다.
   late final Ticker _ticker;
   Duration _lastTick = Duration.zero;
-  double _playTime = 0; // 누적 생존 시간(초), 일시정지 시간 제외
   double _balloonSpawnElapsed = 0;
   double _bombSpawnElapsed = 0;
   int _score = 0;
   int _lives = kMaxMiss;
   int get _difficultyStage => min(
     _kMaxDifficultyStage,
-    1 + (_playTime ~/ _kDifficultyStageDurationSeconds),
+    1 + (_score ~/ _kBalloonsPerDifficultyStage),
   ).toInt();
   double get _difficultySpeedMultiplier => min(
     _kMaximumSpeedMultiplier,
@@ -328,7 +327,6 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
     setState(() {
       _lives = kMaxMiss;
       _score = 0;
-      _playTime = 0;
       _balloonSpawnElapsed = 0;
       _bombSpawnElapsed = 0;
       _status = _GameStatus.playing;
@@ -350,7 +348,6 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
         .clamp(0.0, 0.05)
         .toDouble();
     _lastTick = elapsed;
-    _playTime += dt;
     _balloonSpawnElapsed += dt;
     _bombSpawnElapsed += dt;
 
