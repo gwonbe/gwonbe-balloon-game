@@ -460,6 +460,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   void _tapBomb(Bomb bomb) {
     if (_status != _GameStatus.playing || isPaused || bomb.isExploding) return;
     bomb.isExploding = true;
+    playBombTapSfx();
     _frameNotifier.notify();
     _loseLives(1);
     if (_lives <= 0) _failLevel();

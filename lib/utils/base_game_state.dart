@@ -18,7 +18,11 @@ import 'package:flutter/material.dart';
 abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   late final BgmPlayer _bgm = createBgmPlayer();
   final AudioPlayer _popSfxPlayer = AudioPlayer();
+  final AudioPlayer _bombSfxPlayer = AudioPlayer();
   late final Future<void> _popSfxReady = _popSfxPlayer.setAudioContext(
+    AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers).build(),
+  );
+  late final Future<void> _bombSfxReady = _bombSfxPlayer.setAudioContext(
     AudioContextConfig(focus: AudioContextConfigFocus.mixWithOthers).build(),
   );
   Future<void> _popSfxQueue = Future<void>.value();
@@ -144,6 +148,22 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     }
   }
 
+  /// 폭탄을 눌렀을 때 폭탄 효과음을 재생한다.
+  void playBombTapSfx() {
+    unawaited(_playBombTapSfx());
+  }
+
+  Future<void> _playBombTapSfx() async {
+    if (_popSfxDisposed || !mounted) return;
+    try {
+      await _bombSfxReady;
+      if (_popSfxDisposed || !mounted) return;
+      await _bombSfxPlayer.play(AssetSource(AppConst.fileNameSfxBomb));
+    } catch (_) {
+      // 효과음 재생 실패가 게임 진행을 막지 않도록 한다.
+    }
+  }
+
   // ───────── 일시정지 / 재개 ─────────
 
   void _pauseGame() {
@@ -224,6 +244,7 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     final completion = _activePopSfxCompletion;
     if (completion != null && !completion.isCompleted) completion.complete();
     unawaited(_popSfxPlayer.dispose());
+    unawaited(_bombSfxPlayer.dispose());
 
     unawaited(saveBestScore());
 

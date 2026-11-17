@@ -8,6 +8,7 @@ class AppConst {
   static const fileNameBgmHome = 'music_home_001_0-85.mp3';
   static const fileNameBgmGame = 'music_game_001_0-82.mp3';
   static const fileNameSfxPang = 'sound_pop_001.m4a';
+  static const fileNameSfxBomb = 'sound_bomb_001.m4a';
 
   // ───────── 메인 색상 ─────────
   static const Color mainColor = Color(0xFFE01F66);
