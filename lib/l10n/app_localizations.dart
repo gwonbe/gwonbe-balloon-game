@@ -119,7 +119,7 @@ abstract class AppLocalizations {
   /// No description provided for @game01Description.
   ///
   /// In en, this message translates to:
-  /// **'Pop balloons and survive as long as you can!'**
+  /// **'Pop balloons while avoiding the bombs!'**
   String get game01Description;
 
   /// No description provided for @game01BestScore.
@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @game03Description.
   ///
   /// In en, this message translates to:
-  /// **'Pop the balloons with the correct arithmetic answers!'**
+  /// **'Move the number of balloons matching the answer!'**
   String get game03Description;
 
   /// No description provided for @game03BestScore.
@@ -241,24 +241,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Game'**
   String get game01ScreenStartButton;
-
-  /// No description provided for @game01ScreenLevelClearedTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Level {level} Cleared!'**
-  String game01ScreenLevelClearedTitle(int level);
-
-  /// No description provided for @game01ScreenLevelClearedMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Mistakes: {miss}\nReady for the next level?'**
-  String game01ScreenLevelClearedMessage(Object miss);
-
-  /// No description provided for @game01ScreenNextLevelButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Next Level'**
-  String get game01ScreenNextLevelButton;
 
   /// No description provided for @game01ScreenGameOverTitle.
   ///
@@ -383,7 +365,7 @@ abstract class AppLocalizations {
   /// No description provided for @game03ScreenStartMessage.
   ///
   /// In en, this message translates to:
-  /// **'Pop the balloons matching the answer to the equation!'**
+  /// **'Move the number of balloons matching the answer'**
   String get game03ScreenStartMessage;
 
   /// No description provided for @game03ScreenStartButton.
@@ -419,7 +401,7 @@ abstract class AppLocalizations {
   /// No description provided for @game04Description.
   ///
   /// In en, this message translates to:
-  /// **'Pop 100 balloons by color as fast as you can!'**
+  /// **'Pop 100 balloons according to the color mission as fast as you can!'**
   String get game04Description;
 
   /// No description provided for @game04BestTime.
@@ -449,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @game04ScreenStartMessage.
   ///
   /// In en, this message translates to:
-  /// **'Pop all 100 balloons by color as fast as you can!\nThe target color changes every 10 balloons.'**
+  /// **'Complete the color mission by popping all 100 balloons as fast as you can!\nThe target color changes every 10 balloons.'**
   String get game04ScreenStartMessage;
 
   /// No description provided for @game04ScreenStartButton.

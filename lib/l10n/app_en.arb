@@ -3,7 +3,7 @@
   "homeScreenTapToStart": "Tap to Start!",
   "gameListScreenTitle": "Select a Game",
   "game01Title": "Floating Balloons",
-  "game01Description": "Pop balloons and survive as long as you can!",
+  "game01Description": "Pop balloons while avoiding the bombs!",
   "game01BestScore": "Best: {score} balloons popped",
   "@game01BestScore": {
     "placeholders": {
@@ -23,7 +23,7 @@
     }
   },
   "game03Title": "Arithmetic Challenge",
-  "game03Description": "Pop the balloons with the correct arithmetic answers!",
+  "game03Description": "Move the number of balloons matching the answer!",
   "game03BestScore": "Best Score: {score} Correct Answers",
   "@game03BestScore": {
     "placeholders": {
@@ -52,21 +52,6 @@
     }
   },
   "game01ScreenStartButton": "Start Game",
-  "game01ScreenLevelClearedTitle": "Level {level} Cleared!",
-  "@game01ScreenLevelClearedTitle": {
-    "placeholders": {
-      "level": {
-        "type": "int"
-      }
-    }
-  },
-  "game01ScreenLevelClearedMessage": "Mistakes: {miss}\nReady for the next level?",
-  "@game01ScreenLevelClearedMessage": {
-    "miss": {
-      "type": "int"
-    }
-  },
-  "game01ScreenNextLevelButton": "Next Level",
   "game01ScreenGameOverTitle": "Game Over!",
   "game01ScreenGameOverMessage": "You lost all {maxMiss} lives!\nScore: {score} balloons popped",
   "@game01ScreenGameOverMessage": {
@@ -111,7 +96,7 @@
   "game03ScreenCorrectFeedback": "Correct!",
   "game03ScreenIncorrectFeedback": "Incorrect!",
   "game03ScreenDropPrompt": "Drag matching balloons here",
-  "game03ScreenStartMessage": "Pop the balloons matching the answer to the equation!",
+  "game03ScreenStartMessage": "Move the number of balloons matching the answer",
   "game03ScreenStartButton": "Start Game",
   "game03ScreenGameOverTitle": "Time's Up!",
   "game03ScreenGameOverMessage": "Final Score: {score}",
@@ -124,7 +109,7 @@
   },
   "game03ScreenConfirmButton": "OK",
   "game04Title": "Speed Challenge",
-  "game04Description": "Pop 100 balloons by color as fast as you can!",
+  "game04Description": "Pop 100 balloons according to the color mission as fast as you can!",
   "game04BestTime": "Best time: {time}s",
   "@game04BestTime": {
     "placeholders": {
@@ -136,7 +121,7 @@
   "game04ScreenBalloonsUnit": "popped",
   "game04ScreenSecondsUnit": "sec",
   "game04ScreenColorRule": "Pop this color",
-  "game04ScreenStartMessage": "Pop all 100 balloons by color as fast as you can!\nThe target color changes every 10 balloons.",
+  "game04ScreenStartMessage": "Complete the color mission by popping all 100 balloons as fast as you can!\nThe target color changes every 10 balloons.",
   "game04ScreenStartButton": "Start Game",
   "game04ScreenCompleteTitle": "Speed Challenge Complete!",
   "game04ScreenCompleteMessage": "Time: {time}s",

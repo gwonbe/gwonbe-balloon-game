@@ -18,8 +18,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game01Title => 'Floating Balloons';
 
   @override
-  String get game01Description =>
-      'Pop balloons and survive as long as you can!';
+  String get game01Description => 'Pop balloons while avoiding the bombs!';
 
   @override
   String game01BestScore(int score) {
@@ -43,7 +42,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get game03Description =>
-      'Pop the balloons with the correct arithmetic answers!';
+      'Move the number of balloons matching the answer!';
 
   @override
   String game03BestScore(int score) {
@@ -90,19 +89,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get game01ScreenStartButton => 'Start Game';
-
-  @override
-  String game01ScreenLevelClearedTitle(int level) {
-    return 'Level $level Cleared!';
-  }
-
-  @override
-  String game01ScreenLevelClearedMessage(Object miss) {
-    return 'Mistakes: $miss\nReady for the next level?';
-  }
-
-  @override
-  String get game01ScreenNextLevelButton => 'Next Level';
 
   @override
   String get game01ScreenGameOverTitle => 'Game Over!';
@@ -173,7 +159,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get game03ScreenStartMessage =>
-      'Pop the balloons matching the answer to the equation!';
+      'Move the number of balloons matching the answer';
 
   @override
   String get game03ScreenStartButton => 'Start Game';
@@ -194,7 +180,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get game04Description =>
-      'Pop 100 balloons by color as fast as you can!';
+      'Pop 100 balloons according to the color mission as fast as you can!';
 
   @override
   String game04BestTime(String time) {
@@ -212,7 +198,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get game04ScreenStartMessage =>
-      'Pop all 100 balloons by color as fast as you can!\nThe target color changes every 10 balloons.';
+      'Complete the color mission by popping all 100 balloons as fast as you can!\nThe target color changes every 10 balloons.';
 
   @override
   String get game04ScreenStartButton => 'Start Game';

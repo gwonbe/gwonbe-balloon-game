@@ -3,7 +3,7 @@
   "homeScreenTapToStart": "터치하세요!",
   "gameListScreenTitle": "게임 목록",
   "game01Title": "둥실둥실",
-  "game01Description": "풍선을 터뜨리며 오래 버텨 최고 기록에 도전하세요!",
+  "game01Description": "폭탄을 피해 풍선을 터뜨리세요!",
   "game01BestScore": "최고 기록 : 풍선 {score}개",
   "@game01BestScore": {
     "placeholders": {
@@ -23,7 +23,7 @@
     }
   },
   "game03Title": "사칙연산",
-  "game03Description": "사칙연산 정답 풍선을 터뜨리세요!",
+  "game03Description": "정답 갯수만큼 풍선을 옮겨주세요!",
   "game03BestScore": "최고 기록 : {score}개 정답",
   "@game03BestScore": {
     "placeholders": {
@@ -52,21 +52,6 @@
     }
   },
   "game01ScreenStartButton": "게임 시작",
-  "game01ScreenLevelClearedTitle": "{level}단계 클리어!",
-  "@game01ScreenLevelClearedTitle": {
-    "placeholders": {
-      "level": {
-        "type": "int"
-      }
-    }
-  },
-  "game01ScreenLevelClearedMessage": "실수 횟수: {miss}회\n다음 단계에 도전할까요?",
-  "@game01ScreenLevelClearedMessage": {
-    "miss": {
-      "type": "int"
-    }
-  },
-  "game01ScreenNextLevelButton": "다음 단계",
   "game01ScreenGameOverTitle": "게임 종료!",
   "game01ScreenGameOverMessage": "생명 {maxMiss}개를 모두 잃었어요!\n이번 기록: 풍선 {score}개",
   "@game01ScreenGameOverMessage": {
@@ -111,7 +96,7 @@
   "game03ScreenCorrectFeedback": "딩동댕!",
   "game03ScreenIncorrectFeedback": "땡!",
   "game03ScreenDropPrompt": "같은 색 풍선을 이곳으로 옮기세요",
-  "game03ScreenStartMessage": "계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!",
+  "game03ScreenStartMessage": "정답 갯수만큼 풍선을 옮기세요",
   "game03ScreenStartButton": "게임 시작",
   "game03ScreenGameOverTitle": "시간 종료!",
   "game03ScreenGameOverMessage": "최종 점수 : {score}",
@@ -124,7 +109,7 @@
   },
   "game03ScreenConfirmButton": "확인",
   "game04Title": "스피드 챌린지",
-  "game04Description": "색상 조건에 맞춰 풍선 100개를 빠르게 터뜨리세요!",
+  "game04Description": "색상 미션에 맞춰 풍선 100개를 빠르게 터뜨리세요!",
   "game04BestTime": "최고 기록: {time}초",
   "@game04BestTime": {
     "placeholders": {
@@ -136,7 +121,7 @@
   "game04ScreenBalloonsUnit": "개",
   "game04ScreenSecondsUnit": "초",
   "game04ScreenColorRule": "이 색 풍선을 터뜨려요",
-  "game04ScreenStartMessage": "색상 조건에 맞춰 풍선 100개를 최대한 빠르게 터뜨리세요!\n10개를 터뜨릴 때마다 목표 색상이 바뀝니다.",
+  "game04ScreenStartMessage": "색상 미션에 맞춰 풍선 100개를 최대한 빠르게 터뜨리세요!\n10개를 터뜨릴 때마다 목표 색상이 바뀝니다.",
   "game04ScreenStartButton": "게임 시작",
   "game04ScreenCompleteTitle": "스피드 챌린지 완료!",
   "game04ScreenCompleteMessage": "걸린 시간: {time}초",

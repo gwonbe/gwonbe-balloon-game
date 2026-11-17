@@ -18,7 +18,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game01Title => '둥실둥실';
 
   @override
-  String get game01Description => '풍선을 터뜨리며 오래 버텨 최고 기록에 도전하세요!';
+  String get game01Description => '폭탄을 피해 풍선을 터뜨리세요!';
 
   @override
   String game01BestScore(int score) {
@@ -40,7 +40,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game03Title => '사칙연산';
 
   @override
-  String get game03Description => '사칙연산 정답 풍선을 터뜨리세요!';
+  String get game03Description => '정답 갯수만큼 풍선을 옮겨주세요!';
 
   @override
   String game03BestScore(int score) {
@@ -87,19 +87,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get game01ScreenStartButton => '게임 시작';
-
-  @override
-  String game01ScreenLevelClearedTitle(int level) {
-    return '$level단계 클리어!';
-  }
-
-  @override
-  String game01ScreenLevelClearedMessage(Object miss) {
-    return '실수 횟수: $miss회\n다음 단계에 도전할까요?';
-  }
-
-  @override
-  String get game01ScreenNextLevelButton => '다음 단계';
 
   @override
   String get game01ScreenGameOverTitle => '게임 종료!';
@@ -168,7 +155,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game03ScreenDropPrompt => '같은 색 풍선을 이곳으로 옮기세요';
 
   @override
-  String get game03ScreenStartMessage => '계산식 색깔의 풍선을 정답 개수만큼 터뜨리세요!';
+  String get game03ScreenStartMessage => '정답 갯수만큼 풍선을 옮기세요';
 
   @override
   String get game03ScreenStartButton => '게임 시작';
@@ -188,7 +175,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game04Title => '스피드 챌린지';
 
   @override
-  String get game04Description => '색상 조건에 맞춰 풍선 100개를 빠르게 터뜨리세요!';
+  String get game04Description => '색상 미션에 맞춰 풍선 100개를 빠르게 터뜨리세요!';
 
   @override
   String game04BestTime(String time) {
@@ -206,7 +193,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get game04ScreenStartMessage =>
-      '색상 조건에 맞춰 풍선 100개를 최대한 빠르게 터뜨리세요!\n10개를 터뜨릴 때마다 목표 색상이 바뀝니다.';
+      '색상 미션에 맞춰 풍선 100개를 최대한 빠르게 터뜨리세요!\n10개를 터뜨릴 때마다 목표 색상이 바뀝니다.';
 
   @override
   String get game04ScreenStartButton => '게임 시작';
