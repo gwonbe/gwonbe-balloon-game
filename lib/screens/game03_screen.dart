@@ -168,6 +168,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   final GlobalKey _gridKey = GlobalKey();
   final List<int> _placedBalloons = [];
   bool _roundComplete = false;
+  bool _submitted = false;
 
   // 정답을 맞혀서 다음 라운드로 넘어가야 하는 상태
   bool _pendingNext = false;
@@ -242,6 +243,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
     );
     _placedBalloons.clear();
     _roundComplete = false;
+    _submitted = false;
     _pendingNext = false;
   }
 
@@ -294,31 +296,44 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
   void _onDropBalloon(int index) {
     if (_status != _GameStatus.playing || isPaused) return;
-    if (_feedbackText != null || !_gridActive[index]) {
+    if (_feedbackText != null || _submitted || !_gridActive[index]) {
       return;
     }
-
-    final bool isTargetColor = _gridColors[index] == _round.targetColor;
-
     setState(() {
       _gridActive[index] = false;
-      if (isTargetColor) {
-        _placedBalloons.add(index);
-      } else {
-        _gridPopped[index] = true;
-      }
+      _placedBalloons.add(index);
     });
 
-    if (!isTargetColor) {
+  }
+
+  void _returnBalloonToGrid(int index, Offset globalOffset, double size) {
+    if (_status != _GameStatus.playing || isPaused || _submitted || !_placedBalloons.contains(index)) return;
+    final box = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final local = box.globalToLocal(globalOffset);
+    setState(() {
+      _placedBalloons.remove(index);
+      _gridActive[index] = true;
+      _gridPositions[index] = Offset(
+        ((local.dx + size / 2) / box.size.width).clamp(0.0, 1.0),
+        ((local.dy + size * 0.65) / box.size.height).clamp(0.0, 1.0),
+      );
+    });
+  }
+
+  void _checkAnswer() {
+    if (_status != _GameStatus.playing || isPaused || _feedbackText != null || _submitted) return;
+    final bool correct = _placedBalloons.length == _round.answer &&
+        _placedBalloons.every((index) => _gridColors[index] == _round.targetColor);
+    if (!correct) {
       _showFeedback(false);
       return;
     }
-
-    if (_placedBalloons.length == _round.answer) {
       setState(() {
         _score++;
         _pendingNext = true;
         _roundComplete = true;
+        _submitted = true;
         for (int i = 0; i < _kGridCount; i++) {
           if (_gridActive[i]) _gridPopped[i] = true;
         }
@@ -326,7 +341,6 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
 
       _showFeedback(true);
 
-      // 메시지와 정답 카운트를 잠깐 보여준 뒤 다음 문제로 이동한다.
       _timers.once('next-round', _kNextRoundDelay, () {
         if (!mounted || _status != _GameStatus.playing || isPaused) return;
 
@@ -336,7 +350,6 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
           _prepareNextRound();
         });
       });
-    }
   }
 
   @override
@@ -364,11 +377,22 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(12, 150, 12, 12),
                       child: LayoutBuilder(builder: (context, constraints) {
-                        final gridHeight = min(260.0, max(145.0, constraints.maxHeight - 175));
+                        final gridHeight = min(240.0, max(140.0, constraints.maxHeight * 0.42));
                         return Column(children: [
-                          Expanded(child: _buildDropArea()),
-                          const SizedBox(height: 12),
                           SizedBox(height: gridHeight, child: _buildGrid()),
+                          const SizedBox(height: 12),
+                          Expanded(child: _buildDropArea()),
+                          const SizedBox(height: 10),
+                          GameDialogActionButton(
+                            label: l10n.game03ScreenConfirmButton,
+                            onPressed: _checkAnswer,
+                            color: _round.targetColor,
+                            textColor: _round.targetColor.computeLuminance() > 0.35
+                                ? Colors.black
+                                : Colors.white,
+                            shadowColor: _round.targetColor,
+                            textShadow: true,
+                          ),
                         ]);
                       }),
                     ),
@@ -458,6 +482,11 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
                     ),
                   ),
                 ),
+            DragTarget<int>(
+              onWillAcceptWithDetails: (details) => _placedBalloons.contains(details.data) && !_submitted,
+              onAcceptWithDetails: (details) => _returnBalloonToGrid(details.data, details.offset, size),
+              builder: (context, candidates, rejected) => const SizedBox.expand(),
+            ),
           ]),
         );
       },
@@ -465,7 +494,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   }
 
   Widget _buildDropArea() => DragTarget<int>(
-    onWillAcceptWithDetails: (_) => _status == _GameStatus.playing && !isPaused,
+    onWillAcceptWithDetails: (details) => _status == _GameStatus.playing && !isPaused && !_submitted && _gridActive[details.data],
     onAcceptWithDetails: (details) => _onDropBalloon(details.data),
     builder: (context, candidates, rejected) => AnimatedContainer(
       duration: const Duration(milliseconds: 150),
@@ -487,9 +516,10 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
           runAlignment: WrapAlignment.center,
           spacing: 2,
           runSpacing: 0,
-          children: _placedBalloons.map((index) => AnimatedOpacity(
-            opacity: _roundComplete ? 0 : 1,
-            duration: const Duration(milliseconds: 180),
+          children: _placedBalloons.map((index) => Draggable<int>(
+            data: index,
+            feedback: Material(color: Colors.transparent, child: LabeledBalloon(size: 32, color: _gridColors[index], label: '', withShadow: true)),
+            childWhenDragging: const SizedBox(width: 23, height: 32),
             child: LabeledBalloon(size: 23, color: _gridColors[index], label: ''),
           )).toList(),
         ))),

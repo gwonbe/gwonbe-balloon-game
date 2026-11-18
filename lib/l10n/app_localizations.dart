@@ -359,13 +359,13 @@ abstract class AppLocalizations {
   /// No description provided for @game03ScreenDropPrompt.
   ///
   /// In en, this message translates to:
-  /// **'Drag matching balloons here'**
+  /// **'Drag matching balloons here!'**
   String get game03ScreenDropPrompt;
 
   /// No description provided for @game03ScreenStartMessage.
   ///
   /// In en, this message translates to:
-  /// **'Move the number of balloons matching the answer'**
+  /// **'Move the number of balloons matching the answer!'**
   String get game03ScreenStartMessage;
 
   /// No description provided for @game03ScreenStartButton.

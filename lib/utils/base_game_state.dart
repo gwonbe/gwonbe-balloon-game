@@ -447,12 +447,20 @@ class _PressableDialogButton extends StatefulWidget {
   final bool isPrimary;
   final VoidCallback onPressed;
   final double width;
+  final Color? primaryColor;
+  final Color? primaryTextColor;
+  final Color? primaryShadowColor;
+  final bool textShadow;
 
   const _PressableDialogButton({
     required this.label,
     required this.isPrimary,
     required this.onPressed,
     required this.width,
+    this.primaryColor,
+    this.primaryTextColor,
+    this.primaryShadowColor,
+    this.textShadow = false,
   });
 
   @override
@@ -465,10 +473,10 @@ class _PressableDialogButtonState extends State<_PressableDialogButton> {
   @override
   Widget build(BuildContext context) {
     final Color faceColor = widget.isPrimary
-        ? AppConst.dialogPrimaryButton
+        ? (widget.primaryColor ?? AppConst.dialogPrimaryButton)
         : AppConst.dialogSecondaryButton;
     final Color textColor = widget.isPrimary
-        ? AppConst.dialogPrimaryButtonText
+        ? (widget.primaryTextColor ?? AppConst.dialogPrimaryButtonText)
         : AppConst.dialogSecondaryButtonText;
 
     return Semantics(
@@ -499,7 +507,7 @@ class _PressableDialogButtonState extends State<_PressableDialogButton> {
             boxShadow: [
               BoxShadow(
                 color: widget.isPrimary
-                    ? const Color(0xFF9C1748).withValues(alpha: 0.65)
+                    ? (widget.primaryShadowColor ?? const Color(0xFF9C1748)).withValues(alpha: 0.65)
                     : Colors.black.withValues(alpha: 0.22),
                 offset: Offset(0, _pressed ? 1 : 5),
                 blurRadius: _pressed ? 1 : 0,
@@ -515,6 +523,9 @@ class _PressableDialogButtonState extends State<_PressableDialogButton> {
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: textColor,
+                shadows: widget.textShadow
+                    ? [Shadow(color: textColor.computeLuminance() > 0.5 ? Colors.black54 : Colors.white70, offset: const Offset(1, 1), blurRadius: 2)]
+                    : null,
               ),
             ),
           ),
@@ -522,6 +533,40 @@ class _PressableDialogButtonState extends State<_PressableDialogButton> {
       ),
     );
   }
+}
+
+/// A standalone primary action button styled like the positive dialog button.
+class GameDialogActionButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+  final double width;
+  final Color? color;
+  final Color? textColor;
+  final Color? shadowColor;
+  final bool textShadow;
+
+  const GameDialogActionButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.width = 220,
+    this.color,
+    this.textColor,
+    this.shadowColor,
+    this.textShadow = false,
+  });
+
+  @override
+  Widget build(BuildContext context) => _PressableDialogButton(
+        label: label,
+        isPrimary: true,
+        onPressed: onPressed,
+        width: width,
+        primaryColor: color,
+        primaryTextColor: textColor,
+        primaryShadowColor: shadowColor,
+        textShadow: textShadow,
+      );
 }
 
 /// 게임 화면 위에 어두운 배경과 함께 [GameDialog]를 가운데 띄우는 오버레이.

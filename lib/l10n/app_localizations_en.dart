@@ -155,11 +155,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get game03ScreenIncorrectFeedback => 'Incorrect!';
 
   @override
-  String get game03ScreenDropPrompt => 'Drag matching balloons here';
+  String get game03ScreenDropPrompt => 'Drag matching balloons here!';
 
   @override
   String get game03ScreenStartMessage =>
-      'Move the number of balloons matching the answer';
+      'Move the number of balloons matching the answer!';
 
   @override
   String get game03ScreenStartButton => 'Start Game';

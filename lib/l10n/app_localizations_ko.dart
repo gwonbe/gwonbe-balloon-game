@@ -152,10 +152,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get game03ScreenIncorrectFeedback => '땡!';
 
   @override
-  String get game03ScreenDropPrompt => '같은 색 풍선을 이곳으로 옮기세요';
+  String get game03ScreenDropPrompt => '같은 색 풍선을 이곳으로 옮기세요!';
 
   @override
-  String get game03ScreenStartMessage => '정답 갯수만큼 풍선을 옮기세요';
+  String get game03ScreenStartMessage => '정답 갯수만큼 풍선을 옮기세요!';
 
   @override
   String get game03ScreenStartButton => '게임 시작';
