@@ -375,7 +375,7 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
                 Positioned.fill(
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 150, 12, 12),
+                      padding: const EdgeInsets.fromLTRB(12, 162, 12, 12),
                       child: LayoutBuilder(builder: (context, constraints) {
                         final gridHeight = min(240.0, max(140.0, constraints.maxHeight * 0.42));
                         return Column(children: [
@@ -500,7 +500,6 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
       duration: const Duration(milliseconds: 150),
       width: double.infinity,
       height: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 24),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: candidates.isNotEmpty ? Colors.white.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.48),
