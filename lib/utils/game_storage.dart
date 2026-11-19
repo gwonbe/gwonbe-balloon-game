@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// SharedPreferences 저장/조회 모음
+/// SharedPreferences
 class GameStorage {
   GameStorage._();
 
@@ -26,7 +26,6 @@ class GameStorage {
     await prefs.setInt(adCountKey, value);
   }
 
-  /// 1 증가시키고 증가된 값을 반환
   static Future<int> incrementAdCount() async {
     final prefs = await SharedPreferences.getInstance();
     final int next = (prefs.getInt(adCountKey) ?? 0) + 1;

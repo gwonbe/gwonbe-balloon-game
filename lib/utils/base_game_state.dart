@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:pangteojyo/l10n/app_localizations.dart';
 import 'package:pangteojyo/utils/app_bgm.dart';
 import 'package:pangteojyo/utils/app_const.dart';
@@ -31,8 +33,8 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   bool _isPaused = false;
   bool _isDialogOpen = false;
 
-  /// 광고를 띄우는 게임 시작 횟수 기준
-  static const int kAdThreshold = 10;
+  /// 광고 횟수 기준
+  static const int kAdThreshold = 5;
 
   /// dispose 이후에도 안전하게 광고창을 띄우기 위해 Navigator를 미리 잡아둔다.
   NavigatorState? _navigator;
@@ -85,6 +87,11 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     final int count = await GameStorage.getAdCount();
     if (!navigator.mounted) return;
     if (count < kAdThreshold) return;
+
+    final List<ConnectivityResult> connectivity = await Connectivity().checkConnectivity();
+    if (!navigator.mounted) return;
+    final bool isConnected = connectivity.any((result) => result != ConnectivityResult.none);
+    if (!isConnected) return;
 
     await GameStorage.setAdCount(0);
     if (!navigator.mounted) return;
