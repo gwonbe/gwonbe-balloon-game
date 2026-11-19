@@ -51,10 +51,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get gameListScreenNoRecord => '기록 없음';
 
   @override
-  String get baseGameStateAdTimeTitle => '광고타임!';
+  String get baseGameStateAdTimeTitle => '^_^';
 
   @override
-  String get baseGameStateAdTimeMessage => '확인 버튼을 눌러주세요.';
+  String get baseGameStateAdTimeMessage => '당신의 하루를 응원합니다!';
 
   @override
   String get baseGameStateConfirmButton => '확인';

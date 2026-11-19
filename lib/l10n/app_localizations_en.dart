@@ -53,10 +53,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameListScreenNoRecord => 'No Record';
 
   @override
-  String get baseGameStateAdTimeTitle => 'Ad Break!';
+  String get baseGameStateAdTimeTitle => '^_^';
 
   @override
-  String get baseGameStateAdTimeMessage => 'Please press Confirm.';
+  String get baseGameStateAdTimeMessage => 'We’re cheering you on today!';
 
   @override
   String get baseGameStateConfirmButton => 'Confirm';

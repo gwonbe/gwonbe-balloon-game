@@ -33,8 +33,8 @@
     }
   },
   "gameListScreenNoRecord": "기록 없음",
-  "baseGameStateAdTimeTitle": "광고타임!",
-  "baseGameStateAdTimeMessage": "확인 버튼을 눌러주세요.",
+  "baseGameStateAdTimeTitle": "^_^",
+  "baseGameStateAdTimeMessage": "당신의 하루를 응원합니다!",
   "baseGameStateConfirmButton": "확인",
   "baseGameStatePauseTitle": "일시정지",
   "baseGameStatePauseMessage": "게임을 중단하시겠습니까?",

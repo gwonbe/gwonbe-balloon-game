@@ -173,13 +173,13 @@ abstract class AppLocalizations {
   /// No description provided for @baseGameStateAdTimeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Ad Break!'**
+  /// **'^_^'**
   String get baseGameStateAdTimeTitle;
 
   /// No description provided for @baseGameStateAdTimeMessage.
   ///
   /// In en, this message translates to:
-  /// **'Please press Confirm.'**
+  /// **'We’re cheering you on today!'**
   String get baseGameStateAdTimeMessage;
 
   /// No description provided for @baseGameStateConfirmButton.
