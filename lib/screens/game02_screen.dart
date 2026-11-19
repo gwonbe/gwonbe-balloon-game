@@ -18,7 +18,7 @@ class Game02Screen extends StatefulWidget {
 // ───────── 상수 ─────────
 
 /// 제한 시간(초)
-const int kGameDuration = 63;
+const int kGameDuration = 64;
 
 /// 3x3 그리드
 const int _kGridColumns = 3;

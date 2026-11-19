@@ -18,7 +18,7 @@ class Game03Screen extends StatefulWidget {
 // ───────── 상수 ─────────
 
 /// 제한 시간(초)
-const int _kGameDuration = 63;
+const int _kGameDuration = 64;
 
 /// 5x5 풍선판
 const int _kGridColumns = 5;
@@ -387,11 +387,10 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
                             label: l10n.game03ScreenConfirmButton,
                             onPressed: _checkAnswer,
                             color: _round.targetColor,
-                            textColor: _round.targetColor.computeLuminance() > 0.35
-                                ? Colors.black
-                                : Colors.white,
+                            textColor: Colors.white,
                             shadowColor: _round.targetColor,
                             textShadow: true,
+                            fontSize: 20,
                           ),
                         ]);
                       }),

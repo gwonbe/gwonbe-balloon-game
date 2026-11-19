@@ -48,7 +48,10 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
   String get bestScoreKey;
 
   /// Override when a game needs a different background music repeat point.
-  BgmPlayer createBgmPlayer() => BgmPlayer();
+  BgmPlayer createBgmPlayer() => BgmPlayer(
+    startPosition: const Duration(seconds: 16),
+    replayPosition: const Duration(seconds: 16),
+  );
 
   /// 이 게임에서 전달할 현재 기록
   int get currentScore;
@@ -121,7 +124,7 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     _bgm.start();
   }
 
-  /// 게임 BGM 정지 (재생 위치 초기화). 다음 startBgm()은 처음부터 재생한다.
+  /// 게임 BGM 정지. 다음 startBgm()은 설정된 시작 위치에서 재생한다.
   void stopBgm() {
     _bgm.stop();
   }
@@ -458,6 +461,7 @@ class _PressableDialogButton extends StatefulWidget {
   final Color? primaryTextColor;
   final Color? primaryShadowColor;
   final bool textShadow;
+  final double fontSize;
 
   const _PressableDialogButton({
     required this.label,
@@ -468,6 +472,7 @@ class _PressableDialogButton extends StatefulWidget {
     this.primaryTextColor,
     this.primaryShadowColor,
     this.textShadow = false,
+    this.fontSize = 16,
   });
 
   @override
@@ -527,11 +532,17 @@ class _PressableDialogButtonState extends State<_PressableDialogButton> {
               widget.label,
               maxLines: 1,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: widget.fontSize,
                 fontWeight: FontWeight.bold,
                 color: textColor,
                 shadows: widget.textShadow
-                    ? [Shadow(color: textColor.computeLuminance() > 0.5 ? Colors.black54 : Colors.white70, offset: const Offset(1, 1), blurRadius: 2)]
+                    ? const [
+                        Shadow(
+                          color: Colors.black87,
+                          offset: Offset(1, 1),
+                          blurRadius: 3,
+                        ),
+                      ]
                     : null,
               ),
             ),
@@ -551,6 +562,7 @@ class GameDialogActionButton extends StatelessWidget {
   final Color? textColor;
   final Color? shadowColor;
   final bool textShadow;
+  final double fontSize;
 
   const GameDialogActionButton({
     super.key,
@@ -561,6 +573,7 @@ class GameDialogActionButton extends StatelessWidget {
     this.textColor,
     this.shadowColor,
     this.textShadow = false,
+    this.fontSize = 16,
   });
 
   @override
@@ -573,6 +586,7 @@ class GameDialogActionButton extends StatelessWidget {
         primaryTextColor: textColor,
         primaryShadowColor: shadowColor,
         textShadow: textShadow,
+        fontSize: fontSize,
       );
 }
 

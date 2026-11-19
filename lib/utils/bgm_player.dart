@@ -7,11 +7,13 @@ import 'package:pangteojyo/utils/app_const.dart';
 class BgmPlayer {
   final String assetPath;
   final Duration repeatDelay;
+  final Duration startPosition;
   final Duration replayPosition;
 
   BgmPlayer({
     this.assetPath = AppConst.fileNameBgmGame,
     this.repeatDelay = const Duration(seconds: 2),
+    this.startPosition = Duration.zero,
     this.replayPosition = Duration.zero,
   });
 
@@ -30,7 +32,7 @@ class BgmPlayer {
     _active = true;
     await _player.setReleaseMode(ReleaseMode.stop);
     _completeSub ??= _player.onPlayerComplete.listen((_) => _scheduleReplay());
-    await _play();
+    await _play(position: startPosition);
   }
 
   Future<void> _play({Duration? position}) async {
@@ -66,7 +68,7 @@ class BgmPlayer {
     }
   }
 
-  /// 완전 정지 (다음에 start()를 호출하면 처음부터 재생)
+  /// 완전 정지 (다음 start()는 설정된 시작 위치에서 재생)
   Future<void> stop() async {
     _active = false;
     _waitingReplay = false;

@@ -315,6 +315,7 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
   @override
   BgmPlayer createBgmPlayer() => BgmPlayer(
     repeatDelay: const Duration(seconds: 3),
+    startPosition: const Duration(seconds: 16),
     replayPosition: const Duration(seconds: 16),
   );
 
