@@ -167,7 +167,6 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
   late List<Offset> _gridPositions;
   final GlobalKey _gridKey = GlobalKey();
   final List<int> _placedBalloons = [];
-  bool _roundComplete = false;
   bool _submitted = false;
 
   // 정답을 맞혀서 다음 라운드로 넘어가야 하는 상태
@@ -242,7 +241,6 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
       ),
     );
     _placedBalloons.clear();
-    _roundComplete = false;
     _submitted = false;
     _pendingNext = false;
   }
@@ -332,7 +330,6 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
       setState(() {
         _score++;
         _pendingNext = true;
-        _roundComplete = true;
         _submitted = true;
         for (int i = 0; i < _kGridCount; i++) {
           if (_gridActive[i]) _gridPopped[i] = true;
@@ -399,20 +396,13 @@ class _Game03ScreenState extends BaseGameState<Game03Screen> {
                 ),
               GameTopBar(
                 pauseButton: buildPauseButton(),
-                chips: [
-                  InfoChip(
-                    icon: Icons.star,
-                    value: '$_score',
-                    unit: l10n.game03ScreenScoreUnit,
-                    width: 95,
-                  ),
-                  InfoChip(
-                    icon: Icons.timer,
-                    value: '$_timeLeft',
-                    unit: l10n.game03ScreenSecondUnit,
-                    width: 90,
-                  ),
-                ],
+                center: GameTopBarCenter(value: '$_score'),
+                trailing: InfoChip(
+                  icon: Icons.timer,
+                  value: '$_timeLeft',
+                  unit: l10n.game03ScreenSecondUnit,
+                  width: 90,
+                ),
                 bottom: showBoard ? _buildQuestionBoard() : null,
               ),
               if (_feedbackText != null)

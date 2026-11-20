@@ -300,20 +300,13 @@ class _Game02ScreenState extends BaseGameState<Game02Screen> {
                 ),
               GameTopBar(
                 pauseButton: buildPauseButton(),
-                chips: [
-                  InfoChip(
-                    icon: Icons.star,
-                    value: '$_score',
-                    unit: l10n.game02ScreenScoreUnit,
-                    width: 95,
-                  ),
-                  InfoChip(
-                    icon: Icons.timer,
-                    value: '$_timeLeft',
-                    unit: l10n.game02ScreenSecondUnit,
-                    width: 90,
-                  ),
-                ],
+                center: GameTopBarCenter(value: '$_score'),
+                trailing: InfoChip(
+                  icon: Icons.timer,
+                  value: '$_timeLeft',
+                  unit: l10n.game02ScreenSecondUnit,
+                  width: 90,
+                ),
                 bottom: showBoard ? _buildQuestionBoard() : null,
               ),
               if (_feedbackText != null)

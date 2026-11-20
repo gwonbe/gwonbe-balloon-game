@@ -6,7 +6,6 @@ import 'package:pangteojyo/utils/base_game_state.dart';
 import 'package:pangteojyo/utils/bgm_player.dart';
 import 'package:pangteojyo/utils/game_storage.dart';
 import 'package:pangteojyo/widgets/balloon_painter.dart';
-import 'package:pangteojyo/widgets/info_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -622,37 +621,24 @@ class _Game01ScreenState extends BaseGameState<Game01Screen>
 
   Widget _buildTopBar() {
     return GameTopBar(
-      pauseButton: Row(
+      pauseButton: buildPauseButton(),
+      center: GameTopBarCenter(value: '$_score'),
+      trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          buildPauseButton(),
-          const SizedBox(width: 6),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (int i = 0; i < kMaxMiss; i++)
-                Padding(
-                  padding: EdgeInsets.only(right: i == kMaxMiss - 1 ? 0 : 1),
-                  child: Icon(
-                    Icons.favorite_rounded,
-                    size: 14,
-                    color: i < _lives
-                        ? AppConst.infoChipIcon
-                        : Colors.transparent,
-                  ),
-                ),
-            ],
-          ),
+          for (int i = 0; i < kMaxMiss; i++)
+            Padding(
+              padding: EdgeInsets.only(right: i == kMaxMiss - 1 ? 0 : 1),
+              child: Icon(
+                Icons.favorite_rounded,
+                size: 16,
+                color: i >= kMaxMiss - _lives
+                    ? AppConst.infoChipIcon
+                    : Colors.transparent,
+              ),
+            ),
         ],
       ),
-      chips: [
-        InfoChip(
-          icon: Icons.bubble_chart_rounded,
-          value: '$_score',
-          unit: l10n.game01ScreenBalloonUnit,
-          width: 145,
-        ),
-      ],
     );
   }
 

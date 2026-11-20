@@ -343,20 +343,15 @@ class _Game04ScreenState extends BaseGameState<Game04Screen> {
                 ),
               GameTopBar(
                 pauseButton: buildPauseButton(),
-                chips: [
-                  InfoChip(
-                    icon: Icons.bubble_chart_rounded,
-                    value: '$_poppedCount',
-                    unit: '/$_kBalloonCount',
-                    width: 110,
-                  ),
-                  InfoChip(
-                    icon: Icons.timer_rounded,
-                    value: _formatTime(_elapsedMilliseconds),
-                    unit: l10n.game04ScreenSecondsUnit,
-                    width: 110,
-                  ),
-                ],
+                center: GameTopBarCenter(
+                  value: _formatTime(_elapsedMilliseconds),
+                ),
+                trailing: InfoChip(
+                  icon: Icons.bubble_chart_rounded,
+                  value: '$_poppedCount',
+                  unit: '/$_kBalloonCount',
+                  width: 110,
+                ),
                 bottom: showBoard && currentRule != null
                     ? _buildRuleBoard(currentRule)
                     : null,

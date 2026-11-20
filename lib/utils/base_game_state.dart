@@ -644,27 +644,23 @@ class GameBackground extends StatelessWidget {
   }
 }
 
-/// 게임 화면 상단 바: 왼쪽 일시정지 버튼, 오른쪽 정보 칩들, (선택) 아래에 문제판
+/// 게임 화면 상단 바: 왼쪽 일시정지, 중앙 주요 정보, 오른쪽 보조 정보
 class GameTopBar extends StatelessWidget {
   final Widget pauseButton;
-  final List<Widget> chips;
+  final Widget center;
+  final Widget trailing;
   final Widget? bottom;
 
   const GameTopBar({
     super.key,
     required this.pauseButton,
-    required this.chips,
+    required this.center,
+    required this.trailing,
     this.bottom,
   });
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> spacedChips = [];
-    for (int i = 0; i < chips.length; i++) {
-      if (i > 0) spacedChips.add(const SizedBox(width: 8));
-      spacedChips.add(chips[i]);
-    }
-
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -673,14 +669,54 @@ class GameTopBar extends StatelessWidget {
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                pauseButton,
-                Row(children: spacedChips),
+                SizedBox(
+                  width: 110,
+                  height: 48,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: pauseButton,
+                  ),
+                ),
+                Expanded(child: Center(child: center)),
+                SizedBox(
+                  width: 110,
+                  height: 48,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: trailing,
+                  ),
+                ),
               ],
             ),
             if (bottom != null) ...[const SizedBox(height: 14), bottom!],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 공통 상단 중앙 표시 (점수 또는 경과 시간).
+class GameTopBarCenter extends StatelessWidget {
+  final String value;
+
+  const GameTopBarCenter({super.key, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          value,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppConst.mainColor,
+            fontSize: 34,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
