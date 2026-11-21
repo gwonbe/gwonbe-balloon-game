@@ -8,12 +8,8 @@ import 'screens/home_screen.dart';
 
 void main() {
   runApp(
-    kDebugMode
-        ? DevicePreview(
-            enabled: true,
-            builder: (_) => const MyApp(),
-          )
-        : const MyApp(),
+    const MyApp(),
+    //kDebugMode ? DevicePreview(enabled: true, builder: (_) => const MyApp(),) : const MyApp(),
   );
 }
 

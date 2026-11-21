@@ -131,36 +131,40 @@ class _GameListScreenState extends State<GameListScreen> {
         surfaceTintColor: Colors.transparent,
         title: Text(l10n.gameListScreenTitle),
       ),
-      body: Stack(
-        children: [
-          ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
-            itemCount: games.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final game = games[index];
-              final int best = _bestScores[game.bestScoreKey] ?? 0;
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                itemCount: games.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final game = games[index];
+                  final int best = _bestScores[game.bestScoreKey] ?? 0;
 
-              return _GameCard(
-                game: game,
-                bestText: best == 0
-                    ? l10n.gameListScreenNoRecord
-                    : game.bestTextBuilder(best),
-                onTap: () {
-                  Navigator.of(
-                    context,
-                  ).push(MaterialPageRoute(builder: game.builder));
+                  return _GameCard(
+                    game: game,
+                    bestText: best == 0
+                        ? l10n.gameListScreenNoRecord
+                        : game.bestTextBuilder(best),
+                    onTap: () {
+                      Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute(builder: game.builder));
+                    },
+                  );
                 },
-              );
-            },
-          ),
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Center(child: AppVersionText(color: Colors.white)),
-          ),
-        ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 12),
+              child: Center(child: AppVersionText(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }

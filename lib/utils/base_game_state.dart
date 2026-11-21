@@ -256,8 +256,6 @@ abstract class BaseGameState<T extends StatefulWidget> extends State<T> {
     unawaited(_popSfxPlayer.dispose());
     unawaited(_bombSfxPlayer.dispose());
 
-    unawaited(saveBestScore());
-
     final nav = _navigator;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showAdIfNeeded(nav);
